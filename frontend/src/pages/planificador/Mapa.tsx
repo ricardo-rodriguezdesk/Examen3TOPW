@@ -270,7 +270,16 @@ function PanelDetalle({ m, porClave, libera, onElegir }: {
         <div className="rounded-[14px] bg-bajo-suave p-3 text-[14px] text-bajo">
           <p className="flex items-center gap-1 font-bold"><Lock className="size-3.5" /> Bloqueada</p>
           <ul className="mt-1 list-disc pl-5">
-            {m.requisitosPendientes.length > 0 && <li>Primero debes acreditar {m.requisitosPendientes.map((c) => tituloBonito(porClave.get(c)?.nombre ?? c)).join(", ")}.</li>}
+            {(() => {
+              // requisitosPendientes trae pre-requisitos sin acreditar y co-requisitos que aún no se pueden inscribir
+              const co = m.requisitosPendientes.filter((c) => m.correquisitos.includes(c));
+              const pre = m.requisitosPendientes.filter((c) => !co.includes(c));
+              const nombres = (cs: string[]) => cs.map((c) => tituloBonito(porClave.get(c)?.nombre ?? c)).join(", ");
+              return (<>
+                {pre.length > 0 && <li>Primero debes acreditar {nombres(pre)}.</li>}
+                {co.length > 0 && <li>Se cursa junto con {nombres(co)}, que todavía no puedes inscribir.</li>}
+              </>);
+            })()}
             {m.faltaPorcentaje && <li>Necesitas el {m.porcentajeRequerido} % de los créditos de la carrera.</li>}
           </ul>
         </div>

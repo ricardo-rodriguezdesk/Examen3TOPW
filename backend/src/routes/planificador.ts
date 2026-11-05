@@ -82,5 +82,6 @@ planificadorRouter.post("/generar", async (req, res) => {
   const aprobadas = new Set(avance.materias.filter((m) => m.estado === "aprobada" || m.estado === "cursando").map((m) => m.clave));
   const correquisitos = new Map(elegidas.map((m) => [m.clave, m.correquisitos.filter((c) => !aprobadas.has(c))]));
 
-  res.json(generarHorarios({ claves, grupos, preferencias, correquisitos }));
+  const nombres = new Map(avance.materias.map((m) => [m.clave, m.nombre]));
+  res.json(generarHorarios({ claves, grupos, preferencias, correquisitos, nombres }));
 });

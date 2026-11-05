@@ -113,6 +113,22 @@ export function calcularAvance(args: {
     };
   }).sort((a, b) => a.semestreSugerido - b.semestreSugerido || a.clave.localeCompare(b.clave));
 
+  // 4b. Co-requisitos: se cursan en el mismo semestre. Si la pareja no se puede inscribir (está bloqueada),
+  //     esta tampoco. La pareja queda en requisitosPendientes (el front distingue pre/co con `correquisitos`).
+  //     Se repite hasta estabilizar por si hay cadenas de co-requisitos.
+  const porClaveEstado = new Map(materias.map((m) => [m.clave, m]));
+  for (let cambio = true; cambio;) {
+    cambio = false;
+    for (const m of materias) {
+      if (m.estado !== "disponible" && m.estado !== "reprobada") continue;
+      const bloqueantes = m.correquisitos.filter((c) => porClaveEstado.get(c)?.estado === "bloqueada" && !m.requisitosPendientes.includes(c));
+      if (!bloqueantes.length) continue;
+      m.requisitosPendientes = [...m.requisitosPendientes, ...bloqueantes];
+      if (m.estado === "disponible") m.estado = "bloqueada";
+      cambio = true;
+    }
+  }
+
   // 5. Semestres cursados (periodos regulares del kardex + el actual)
   const regulares = new Set(kardex.materias.map((m) => m.periodo).filter((p) => !/\/V$/i.test(p)));
   const periodoActual = calificaciones.periodo?.clave ?? null;
@@ -241,56 +257,77 @@ function evaluar(grupos: GrupoOferta[]): OpcionHorario {
   };
 }
 
+/** Búsqueda con retroceso: una opción por materia, sin choques. Primero las materias con menos grupos (poda más rápido). */
+function combinar(candidatos: GrupoOferta[][], tope = 500): OpcionHorario[] {
+  const orden = [...candidatos].sort((a, b) => a.length - b.length);
+  const encontradas: OpcionHorario[] = [];
+  const elegidos: GrupoOferta[] = [];
+  let exploradas = 0;
+  const buscar = (i: number) => {
+    if (exploradas++ > 50_000 || encontradas.length >= tope) return;
+    if (i === orden.length) { encontradas.push(evaluar([...elegidos])); return; }
+    for (const g of orden[i]) {
+      if (elegidos.some((e) => chocan(e, g))) continue;
+      elegidos.push(g); buscar(i + 1); elegidos.pop();
+    }
+  };
+  if (orden.length) buscar(0);
+  return encontradas;
+}
+
 export function generarHorarios(args: {
   claves: string[];
   grupos: GrupoOferta[];          // oferta (solo materias inscribibles)
   preferencias: Preferencias;
   correquisitos: Map<string, string[]>; // clave → co-requisitos no acreditados
+  nombres?: Map<string, string>;  // clave → nombre, para que los mensajes sean legibles
   limite?: number;
 }): OpcionesHorario {
   const { preferencias: p } = args;
   const claves = [...new Set(args.claves)];
+  const nombre = (c: string) => args.nombres?.get(c) ?? args.grupos.find((g) => g.clave === c)?.nombre ?? c;
   const advertencias: string[] = [];
   const sinSolucion: string[] = [];
 
-  const candidatos: GrupoOferta[][] = [];
+  const candidatos: { clave: string; grupos: GrupoOferta[] }[] = [];
   for (const clave of claves) {
     const gs = args.grupos.filter((g) => g.clave === clave);
-    if (!gs.length) { sinSolucion.push(clave); advertencias.push(`${clave}: no se oferta o no puedes cursarla todavía.`); continue; }
+    if (!gs.length) { sinSolucion.push(clave); advertencias.push(`${nombre(clave)}: no se oferta o no puedes cursarla todavía.`); continue; }
     const ok = gs.filter((g) => cumplePreferencias(g, p));
-    if (!ok.length) { sinSolucion.push(clave); advertencias.push(`${gs[0].nombre}: ningún grupo cumple tus preferencias.`); continue; }
-    candidatos.push(ok);
+    if (!ok.length) { sinSolucion.push(clave); advertencias.push(`${nombre(clave)}: ningún grupo cumple tus preferencias.`); continue; }
+    candidatos.push({ clave, grupos: ok });
   }
 
   for (const clave of claves) {
     for (const co of args.correquisitos.get(clave) ?? []) {
-      if (!claves.includes(co)) advertencias.push(`${clave} tiene como co-requisito ${co}: deben cursarse juntas.`);
+      if (!claves.includes(co)) advertencias.push(`${nombre(clave)} se cursa junto con ${nombre(co)}: agrégala también.`);
     }
   }
 
-  const creditos = candidatos.reduce((s, gs) => s + gs[0].creditos, 0);
+  const creditos = candidatos.reduce((s, c) => s + c.grupos[0].creditos, 0);
   if (creditos > MAX_CREDITOS_SEMESTRE) advertencias.push(`Suman ${creditos} créditos; la carga máxima reglamentaria es ${MAX_CREDITOS_SEMESTRE}.`);
 
-  // Búsqueda con retroceso: primero las materias con menos grupos (poda más rápido)
-  candidatos.sort((a, b) => a.length - b.length);
-  const encontradas: OpcionHorario[] = [];
-  const elegidos: GrupoOferta[] = [];
-  let exploradas = 0;
-  const buscar = (i: number) => {
-    if (exploradas++ > 50_000 || encontradas.length >= 500) return;
-    if (i === candidatos.length) { encontradas.push(evaluar([...elegidos])); return; }
-    for (const g of candidatos[i]) {
-      if (elegidos.some((e) => chocan(e, g))) continue;
-      elegidos.push(g); buscar(i + 1); elegidos.pop();
-    }
-  };
-  if (candidatos.length) buscar(0);
+  const encontradas = combinar(candidatos.map((c) => c.grupos));
+  const resultado: OpcionesHorario = { opciones: [], sinSolucion, advertencias };
 
   if (candidatos.length && !encontradas.length) {
-    advertencias.push("No hay ninguna combinación sin choques con todas las materias elegidas. Quita alguna o cambia tus preferencias.");
+    advertencias.push("No hay ninguna combinación sin choques con todas las materias elegidas.");
+    // ¿Qué materia conviene quitar? Se prueba quitando una a la vez.
+    if (candidatos.length > 1) {
+      resultado.sugerencias = candidatos
+        .map((c, i) => ({ quitar: c.clave, nombre: nombre(c.clave), opciones: combinar(candidatos.filter((_, j) => j !== i).map((x) => x.grupos), 10).length }))
+        .filter((s) => s.opciones > 0)
+        .sort((a, b) => b.opciones - a.opciones);
+    }
+    // ¿El problema es el turno?
+    if (p.turno) {
+      const sinTurno = claves.map((c) => args.grupos.filter((g) => g.clave === c && cumplePreferencias(g, { ...p, turno: undefined })));
+      if (sinTurno.every((gs) => gs.length)) resultado.opcionesSinTurno = combinar(sinTurno, 10).length;
+    }
   }
 
   const tramo = (o: OpcionHorario) => min(o.horaSalida) - min(o.horaEntrada);
   encontradas.sort((a, b) => b.puntuacion - a.puntuacion || a.horasHueco - b.horasHueco || tramo(a) - tramo(b) || a.horaEntrada.localeCompare(b.horaEntrada));
-  return { opciones: encontradas.slice(0, args.limite ?? 10), sinSolucion, advertencias };
+  resultado.opciones = encontradas.slice(0, args.limite ?? 10);
+  return resultado;
 }

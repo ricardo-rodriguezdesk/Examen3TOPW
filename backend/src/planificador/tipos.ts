@@ -17,7 +17,7 @@ export interface MateriaAvance {
   estado: EstadoMateria;
   calificacion: number | null;     // la acreditada (null si no hay o si fue "AC")
   intentos: number;                // veces cursada según el kardex
-  requisitosPendientes: string[];  // pre-requisitos aún no acreditados
+  requisitosPendientes: string[];  // pre-requisitos aún no acreditados + co-requisitos bloqueados
   faltaPorcentaje: boolean;        // true si la bloquea el % de créditos
 }
 
@@ -82,5 +82,9 @@ export interface OpcionHorario {
 export interface OpcionesHorario {
   opciones: OpcionHorario[];       // máximo 10, ordenadas por puntuación
   sinSolucion: string[];           // claves sin ningún grupo compatible con las preferencias
-  advertencias: string[];          // p. ej. co-requisitos que conviene agregar
+  advertencias: string[];          // p. ej. co-requisitos que conviene agregar (ya con nombres de materia)
+  /** Solo cuando no hay ninguna combinación con todas las materias: qué materia quitar y cuántas opciones salen sin ella. */
+  sugerencias?: { quitar: string; nombre: string; opciones: number }[];
+  /** Solo cuando se pidió un turno y no hubo combinación: cuántas opciones hay con cualquier turno. */
+  opcionesSinTurno?: number;
 }
