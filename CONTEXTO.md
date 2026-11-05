@@ -103,7 +103,7 @@ Base: `https://sii.celaya.tecnm.mx/api`
 | **Kardex (front)** | **B** | ✅ Hecho (mock) |
 | Planificador — backend (BD, retícula OFICIAL, lógica, generador, admin API) | A | ✅ Hecho y probado (con kardex real y mock) |
 | **Planificador — frontend: avance, mapa y generador** (con selector de especialidad) | **B** | ✅ Hecho y probado con el backend real (mock) |
-| **Planificador — frontend: panel admin** | **B** | ⏳ Pendiente |
+| **Planificador — frontend: panel admin** (login, materias, oferta, planes) | **B** | ✅ Hecho y probado con el backend real |
 | Despliegue Render + Vercel | A | ✅ En producción |
 | Base de datos Neon en producción | A | ✅ Conectada (`/api/salud/bd` → postgresql, 59 materias, 112 grupos) |
 | **README, capturas, propuesta escrita del Planificador** | **B** | ⏳ Pendiente |
@@ -279,6 +279,7 @@ useMateriasAdmin({ especialidadId?: number | "comun" })       // lista con requi
 useGuardarMateria()  → mutate({ id?, datos: MateriaAdminEntrada })   // sin id = crear; requisitos: [{ id, tipo: "pre"|"co" }]
 useEliminarMateria() → mutate(id)
 useOfertaAdmin(periodo?) · useGuardarGrupo() → mutate({ id?, datos: GrupoAdminEntrada }) · useEliminarGrupo()
+useGuardarPlan() · useEliminarPlan() · useGuardarEspecialidad() · useEliminarEspecialidad()   // agregados por B (pantalla /admin/planes)
 // Errores que muestra el backend: CONFLICTO (clave repetida), DATOS_INVALIDOS (con mensaje específico), ADMIN_REQUERIDO (→ /admin/login)
 ```
 
@@ -325,8 +326,8 @@ sii-planner/
 ## 8.1 Cómo está armado el frontend (ya existe — úsalo así)
 
 - **Rutas** (`src/main.tsx`): `/login` · `/` (Inicio) · `/calificaciones` · `/kardex` · `/horario` ·
-  `/planificador` (Avance) · `/planificador/mapa` · `/planificador/generador` · `/admin/login` · `/admin` (Materias) · `/admin/oferta`.
-  Todas las del alumno ya están protegidas por `RutaProtegida`. Las de admin todavía **no** (le toca a B con la sesión de admin).
+  `/planificador` (Avance) · `/planificador/mapa` · `/planificador/generador` · `/admin/login` · `/admin` (Materias) · `/admin/oferta` · `/admin/planes`.
+  Las del alumno están protegidas por `RutaProtegida`; las de admin, por `AdminLayout` con la sesión de admin (y `ADMIN_REQUERIDO` regresa a `/admin/login`).
 - **Las páginas de B ya existen** como "Pendiente": solo hay que reemplazar su contenido. No toques `main.tsx` salvo para agregar rutas nuevas.
 - **Datos:** usa solo los hooks de `src/api/hooks.ts`: `useEstudiante()`, `useCalificaciones()`, `useKardex()`, `useHorario()`.
   Cada uno da `{ data, isPending, error, refetch }`. Nunca uses `fetch` directo. Para rutas nuevas (planificador o admin), agrega hooks en ese mismo archivo usando `api()` / `post()` de `src/api/cliente.ts`.

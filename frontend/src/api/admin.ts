@@ -91,3 +91,41 @@ export function useEliminarGrupo() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: K.oferta }); qc.invalidateQueries({ queryKey: ["planificador"] }); },
   });
 }
+
+// ---------- Planes y especialidades (agregado por B para la pantalla Planes) ----------
+
+export interface PlanAdminEntrada { clave: string; nombre: string; creditosTotales: number }
+export interface EspecialidadAdminEntrada { planId: number; clave: string; nombre: string }
+
+const alCambiarReticula = (qc: ReturnType<typeof useQueryClient>) => {
+  qc.invalidateQueries({ queryKey: ["admin"] });
+  qc.invalidateQueries({ queryKey: ["planificador"] });
+};
+
+export function useGuardarPlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, datos }: { id?: number; datos: PlanAdminEntrada }) =>
+      id ? put<{ id: number }>(`/admin/planes/${id}`, datos) : post<{ id: number }>("/admin/planes", datos),
+    onSuccess: () => alCambiarReticula(qc),
+  });
+}
+
+export function useEliminarPlan() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (id: number) => del<{ ok: true }>(`/admin/planes/${id}`), onSuccess: () => alCambiarReticula(qc) });
+}
+
+export function useGuardarEspecialidad() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, datos }: { id?: number; datos: EspecialidadAdminEntrada }) =>
+      id ? put<{ id: number }>(`/admin/especialidades/${id}`, datos) : post<{ id: number }>("/admin/especialidades", datos),
+    onSuccess: () => alCambiarReticula(qc),
+  });
+}
+
+export function useEliminarEspecialidad() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (id: number) => del<{ ok: true }>(`/admin/especialidades/${id}`), onSuccess: () => alCambiarReticula(qc) });
+}
