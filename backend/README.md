@@ -37,11 +37,16 @@ Credenciales mock: usuario `99030001` · contraseña `demo123`.
 | GET | `/api/planificador/avance[?especialidad=]` | Estado de cada materia (kardex × retícula), resumen y alertas |
 | GET | `/api/planificador/oferta` | Grupos del próximo periodo que el alumno puede cursar |
 | POST | `/api/planificador/generar` | `{ claves, preferencias }` → combinaciones sin choques |
+| GET/PUT/DELETE | `/api/planificador/mi-horario` | Horario que el alumno planea cursar (`PUT { grupoIds }`); cuenta en la demanda |
 
 ### Administración (sesión propia: `ADMIN_USER` / `ADMIN_PASSWORD`)
 
 `POST /api/admin/login` · `POST /api/admin/logout` · `GET /api/admin/sesion` y CRUD de
 `/api/admin/planes`, `/especialidades`, `/materias` (con requisitos) y `/oferta` (con bloques).
+
+**Demanda de grupos:** `GET /api/admin/demanda[?periodo=][&simulados=false]` (ocupación por grupo y recomendación por materia),
+`POST /api/admin/demanda/simulados { alumnos? }` y `DELETE /api/admin/demanda/simulados`.
+El alumno se guarda como hash HMAC de su número de control (privacidad).
 
 ## Base de datos
 

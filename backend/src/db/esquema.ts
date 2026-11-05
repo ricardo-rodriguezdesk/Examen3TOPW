@@ -63,7 +63,30 @@ CREATE TABLE IF NOT EXISTS bloques (
   CHECK (fin > inicio)
 );
 
+-- Horario que cada alumno PLANEA cursar (lo guarda desde el Generador).
+-- Sirve para que la coordinación vea la DEMANDA de cada grupo.
+-- Privacidad: no se guarda el número de control, sino un hash HMAC (no se puede revertir sin el secreto del servidor).
+CREATE TABLE IF NOT EXISTS planes_alumno (
+  id            SERIAL PRIMARY KEY,
+  alumno_hash   TEXT NOT NULL,
+  periodo       TEXT NOT NULL,                     -- 27/1
+  especialidad  TEXT,                              -- clave de la especialidad con la que planeó
+  semestre      INT,                               -- semestre del alumno al planear (para estadísticas)
+  creditos      INT  NOT NULL DEFAULT 0,
+  simulado      BOOLEAN NOT NULL DEFAULT FALSE,    -- datos de demostración generados por el sistema
+  actualizado   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (alumno_hash, periodo)
+);
+
+CREATE TABLE IF NOT EXISTS planes_alumno_grupos (
+  plan_id   INT NOT NULL REFERENCES planes_alumno(id) ON DELETE CASCADE,
+  grupo_id  INT NOT NULL REFERENCES grupos(id) ON DELETE CASCADE,
+  PRIMARY KEY (plan_id, grupo_id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_materias_plan ON materias(plan_id);
+CREATE INDEX IF NOT EXISTS idx_planes_alumno_periodo ON planes_alumno(periodo);
+CREATE INDEX IF NOT EXISTS idx_pag_grupo ON planes_alumno_grupos(grupo_id);
 CREATE INDEX IF NOT EXISTS idx_grupos_periodo ON grupos(periodo);
 CREATE INDEX IF NOT EXISTS idx_bloques_grupo ON bloques(grupo_id);
 `;

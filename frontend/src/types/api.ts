@@ -197,3 +197,41 @@ export interface GrupoAdmin {
   docente: string | null; cupo: number; bloques: BloqueOferta[];
 }
 export type GrupoAdminEntrada = Omit<GrupoAdmin, "id" | "clave" | "nombre">;
+
+// ================= DEMANDA DE GRUPOS (copia de backend/src/planificador/demanda.ts) =================
+
+/** GET/PUT/DELETE /api/planificador/mi-horario — el horario que el alumno planea cursar el próximo periodo */
+export interface MiHorario {
+  periodo: string | null;
+  periodoTexto: string;
+  guardado: { grupos: GrupoOferta[]; creditos: number; actualizado: string } | null;
+}
+
+export type NivelOcupacion = "lleno" | "alto" | "normal" | "bajo"; // ≥100 % · ≥80 % · ≥30 % · <30 %
+
+export interface DemandaGrupo {
+  id: number; grupo: string; docente: string | null; cupo: number;
+  planeados: number; reales: number; simulados: number;
+  ocupacion: number; // 1 = cupo lleno (puede pasar de 1)
+  nivel: NivelOcupacion;
+}
+
+export interface DemandaMateria {
+  clave: string; nombre: string; semestre: number;
+  planeados: number; cupoTotal: number; faltan: number;
+  grupos: DemandaGrupo[];
+  recomendacion: { tipo: "abrir" | "redistribuir" | "baja" | "sin_demanda"; mensaje: string } | null;
+}
+
+/** GET /api/admin/demanda[?periodo=27/1][&simulados=false] */
+export interface Demanda {
+  periodo: string | null;
+  periodoTexto: string;
+  incluyeSimulados: boolean;
+  resumen: {
+    alumnos: number; alumnosReales: number; alumnosSimulados: number;
+    gruposLlenos: number; materiasConFaltante: number; lugaresFaltantes: number;
+  };
+  porEspecialidad: { especialidad: string; alumnos: number }[];
+  materias: DemandaMateria[]; // ya ordenadas: primero las que necesitan atención
+}

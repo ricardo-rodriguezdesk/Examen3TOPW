@@ -8,7 +8,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
-  GrupoAdmin, GrupoAdminEntrada, MateriaAdmin, MateriaAdminEntrada, PlanAdmin, SesionAdmin,
+  GrupoAdmin, GrupoAdminEntrada, MateriaAdmin, MateriaAdminEntrada, PlanAdmin, SesionAdmin, Demanda,
 } from "../types/api";
 import { api, del, post, put } from "./cliente";
 
@@ -17,6 +17,7 @@ const K = {
   planes: ["admin", "planes"] as const,
   materias: ["admin", "materias"] as const,
   oferta: ["admin", "oferta"] as const,
+  demanda: ["admin", "demanda"] as const,
 };
 
 // ---------- Sesión ----------
@@ -128,4 +129,32 @@ export function useGuardarEspecialidad() {
 export function useEliminarEspecialidad() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: (id: number) => del<{ ok: true }>(`/admin/especialidades/${id}`), onSuccess: () => alCambiarReticula(qc) });
+}
+
+// ---------- Demanda de grupos (para la coordinación) ----------
+
+/** `simulados: false` muestra solo alumnos reales. Sin periodo usa el de la oferta más reciente. */
+export const useDemanda = (f: { periodo?: string; simulados?: boolean } = {}) => {
+  const p = new URLSearchParams();
+  if (f.periodo) p.set("periodo", f.periodo);
+  if (f.simulados === false) p.set("simulados", "false");
+  return useQuery({ queryKey: [...K.demanda, f], queryFn: () => api<Demanda>(`/admin/demanda?${p}`) });
+};
+
+/** Vuelve a generar los alumnos simulados (10–300; por defecto 150). */
+export function useRegenerarSimulados() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (alumnos?: number) => post<{ ok: true; creados: number }>("/admin/demanda/simulados", alumnos ? { alumnos } : {}),
+    onSuccess: () => qc.invalidateQueries({ queryKey: K.demanda }),
+  });
+}
+
+/** Borra los simulados: la demanda queda solo con alumnos reales. */
+export function useBorrarSimulados() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => del<{ ok: true }>("/admin/demanda/simulados"),
+    onSuccess: () => qc.invalidateQueries({ queryKey: K.demanda }),
+  });
 }

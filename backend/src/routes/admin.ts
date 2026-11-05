@@ -10,6 +10,8 @@ import { config } from "../config.js";
 import { db } from "../db/index.js";
 import { cerrarSesionAdmin, crearSesionAdmin, iguales, leerSesionAdmin, requiereAdmin } from "../middleware/admin.js";
 import { AppError, invalido, noEncontrado } from "../utils/errors.js";
+import { calcularDemanda, generarDemandaSimulada } from "../planificador/demanda.js";
+import { periodoOferta } from "../planificador/repositorio.js";
 import { limpiarCachePlanificador } from "./planificador.js";
 
 export const adminRouter = Router();
@@ -313,5 +315,35 @@ adminRouter.put("/oferta/:id", async (req, res) => {
 adminRouter.delete("/oferta/:id", async (req, res) => {
   const filas = await (await db()).query("DELETE FROM grupos WHERE id=$1 RETURNING id", [id(req.params.id)]);
   if (!filas.length) throw noEncontrado("El grupo");
+  res.json({ ok: true });
+});
+
+// ---------------- Demanda de grupos (para la coordinación) ----------------
+
+const periodoDe = async (v: unknown) => {
+  if (typeof v === "string" && v) {
+    if (!PERIODO.test(v)) throw invalido('El periodo debe tener el formato "27/1".');
+    return v.toUpperCase();
+  }
+  return periodoOferta();
+};
+
+/** GET /api/admin/demanda[?periodo=27/1][&simulados=false] → ocupación por grupo y recomendaciones por materia */
+adminRouter.get("/demanda", async (req, res) => {
+  res.json(await calcularDemanda(await periodoDe(req.query.periodo), req.query.simulados !== "false"));
+});
+
+/** POST /api/admin/demanda/simulados { alumnos?: 10–300 } → vuelve a generar los alumnos simulados */
+adminRouter.post("/demanda/simulados", async (req, res) => {
+  const periodo = await periodoDe(req.body?.periodo);
+  if (!periodo) throw invalido("No hay oferta capturada.");
+  const alumnos = req.body?.alumnos === undefined ? 150 : entero(req.body.alumnos, "alumnos", 10, 300);
+  res.json({ ok: true, creados: await generarDemandaSimulada(periodo, alumnos) });
+});
+
+/** DELETE /api/admin/demanda/simulados → deja solo la demanda de alumnos reales */
+adminRouter.delete("/demanda/simulados", async (req, res) => {
+  const periodo = await periodoDe(req.query.periodo);
+  if (periodo) await (await db()).query("DELETE FROM planes_alumno WHERE periodo = $1 AND simulado", [periodo]);
   res.json({ ok: true });
 });
