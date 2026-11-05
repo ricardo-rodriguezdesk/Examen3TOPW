@@ -26,7 +26,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div>
         <p className="text-sm font-semibold text-marca-600">{e.semestre}.º semestre</p>
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">Hola, {primerNombre} 👋</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">Hola, {primerNombre} </h1>
       </div>
 
       {/* Indicadores */}
