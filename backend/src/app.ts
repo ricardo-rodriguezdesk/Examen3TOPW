@@ -55,6 +55,8 @@ app.use((_req, _res, next) => next(new AppError(404, "NO_ENCONTRADO", "Ruta no e
 // Manejador central de errores: siempre responde { error: CODIGO, mensaje }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  // JSON mal formado en el cuerpo → 400 (no es un error del servidor)
+  if ((err as { type?: string })?.type === "entity.parse.failed") err = new AppError(400, "DATOS_INVALIDOS", "El cuerpo de la petición no es JSON válido.");
   const pg = desdePostgres(err);
   if (pg) err = pg;
   if (err instanceof AppError) {

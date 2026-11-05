@@ -6,7 +6,43 @@
 > para que lo acuerde con A y actualicen este archivo **antes** de cambiar el código.
 > Ambos integrantes usan **macOS** (MacBook).
 
-Última actualización: 5 nov 2026, 15:00 — por B (CONTEXTO 3, en el repo) · **Repo:** https://github.com/ricardo-rodriguezdesk/Examen3TOPW · **App:** https://examen3-topw.vercel.app · **API:** https://sii-planner-api.onrender.com
+Última actualización: 5 nov 2026, 16:00 — por A (rama `a/demanda-grupos`) · **Repo:** https://github.com/ricardo-rodriguezdesk/Examen3TOPW · **App:** https://examen3-topw.vercel.app · **API:** https://sii-planner-api.onrender.com
+
+---
+
+## 0A. NUEVO: Demanda de grupos para la coordinación (léelo primero, B)
+
+**Idea:** el alumno **guarda** en el Generador el horario que planea cursar, y el panel de admin muestra **cuántos alumnos
+planean cada grupo**, su ocupación contra el cupo y una **recomendación** por materia (abrir otro grupo, redistribuir,
+demanda baja, sin demanda). Con esto el backend de administración deja de ser solo un catálogo: es una **herramienta de
+decisión para la coordinación** (qué grupos abrir o ampliar). Usa este argumento en la propuesta escrita y en la exposición.
+
+**Backend (A) — listo y probado** en la rama `a/demanda-grupos` (PR de A). Contrato en §7.2. Resumen:
+- Tablas nuevas `planes_alumno` y `planes_alumno_grupos` (se crean solas al arrancar).
+- **Privacidad:** no se guarda el número de control, solo un **hash HMAC**. La coordinación ve **conteos**, nunca quién eligió qué.
+- Un horario por alumno y periodo; si vuelve a guardar, **se reemplaza**. Valida: grupos de la oferta vigente, de materias que
+  el alumno **sí puede cursar**, un grupo por materia, **sin choques** y ≤ 36 créditos (si falla, `DATOS_INVALIDOS` con mensaje claro).
+- **Demanda simulada:** al arrancar se generan **150 alumnos ficticios** (marcados `simulado`) para que la pantalla de admin
+  tenga datos en la demo. Salen siempre iguales (semilla fija) y muestran todos los casos: grupos llenos, materias a las que
+  les faltan lugares, una para redistribuir y varias con poca demanda. El admin puede **ocultarlos** (`simulados=false`),
+  **regenerarlos** o **borrarlos**.
+
+**Lo que le toca a B (frontend):**
+1. **Generador** (`pages/planificador/Generador.tsx`): en cada opción, botón **"Guardar este horario"** →
+   `useGuardarMiHorario().mutate(opcion.grupos.map((g) => g.id))`. Arriba (o en Avance), una tarjeta **"Mi horario para
+   {periodoTexto}"** con `useMiHorario()`: si `guardado` existe, muéstralo con `HorarioGrid` + créditos + "Guardado el …" y
+   botones **Cambiar** / **Quitar** (`useBorrarMiHorario()`). Texto de privacidad corto: *"Se guarda de forma anónima: la
+   coordinación solo ve cuántos alumnos planean cada grupo."* Muestra `error.message` si el backend rechaza (choque, etc.).
+2. **Admin → nueva página "Demanda"** (`pages/admin/Demanda.tsx`, ruta `/admin/demanda`, pestaña en `AdminLayout`) con `useDemanda()`:
+   - Tarjetas de resumen: alumnos que planearon (reales / simulados), grupos llenos, materias con faltante, lugares faltantes.
+   - Interruptor **"Incluir datos simulados"** (`useDemanda({ simulados: false })` cuando está apagado) y botones
+     **Regenerar** / **Borrar simulados** (`useRegenerarSimulados`, `useBorrarSimulados`, con confirmación).
+   - Lista por materia (ya viene ordenada: primero las que necesitan atención): nombre, clave, semestre, `planeados/cupoTotal`,
+     badge de la `recomendacion` (abrir = rojo, redistribuir = naranja, baja = gris, sin_demanda = gris claro) con su `mensaje`,
+     y por cada grupo una **barra de ocupación** (`ocupacion`, puede pasar de 100 %) con color por `nivel`
+     (lleno rojo · alto naranja · normal verde · bajo gris), `planeados/cupo` y docente.
+   - (Opcional) Gráfica pequeña de `porEspecialidad`.
+3. Agregar estas pantallas al README (capturas) y a la propuesta escrita.
 
 ---
 
@@ -24,7 +60,7 @@
 
 **Cosas que necesito de ti (A):**
 1. ~~Deploy del PR #6~~ ✅ A confirmó que el rediseño está en producción.
-2. **Revisar el PR del Generador** (rama `b/generador-mejoras`). Toca tu `backend/src/planificador/logica.ts`:
+2. ✅ **Revisado por A y en `main` (PR #7).** ~~Revisar el PR del Generador~~ (rama `b/generador-mejoras`). Toca tu `backend/src/planificador/logica.ts`:
    regla nueva **"si el co-requisito de una materia está bloqueado, la materia también"**. Caso real: *Ciberseguridad* (IDD-2502) salía *disponible*
    aunque su co-requisito *Administración de Redes* (SCA-1002) está bloqueado, y el generador no podía armar nada con ella.
    El co-requisito bloqueado se agrega a `requisitosPendientes` (sin cambiar el contrato; el front distingue pre/co con `correquisitos`).
@@ -131,7 +167,9 @@ Base: `https://sii.celaya.tecnm.mx/api`
 | Despliegue Render + Vercel | A | ✅ En producción |
 | Base de datos Neon en producción | A | ✅ Conectada (`/api/salud/bd` → postgresql, 59 materias, 112 grupos) |
 | **Rediseño estilo iOS 27 (toda la app, claro y oscuro)** | **B** | ✅ En `main` (PR #6) y en producción |
-| **Generador: co-requisitos, nombres en mensajes y "qué materia quitar"** | **B** (+ revisión de A en `logica.ts`) | 🔄 PR abierto (rama `b/generador-mejoras`) |
+| **Generador: co-requisitos, nombres en mensajes y "qué materia quitar"** | **B** (+ revisión de A en `logica.ts`) | ✅ En `main` (PR #7), revisado por A |
+| **Demanda de grupos — backend** (guardar horario, demanda por grupo, recomendaciones, simulados) | A | ✅ Rama `a/demanda-grupos` (PR de A) |
+| **Demanda de grupos — frontend** (guardar en Generador, página Admin → Demanda) | **B** | ⏳ Pendiente (ver §0A) |
 | **README** | **B** | ✅ En `main` (PR #5) — **las capturas muestran el diseño viejo: hay que retomarlas** |
 | **Propuesta escrita del Planificador** (`docs/propuesta-planificador.md`, el README ya la enlaza) | **B** | ⏳ Pendiente |
 | Retícula oficial de ISC con seriación | A | ✅ Cargada (especialidades IDP, GTE y ADG — esta última por B, PR #4) |
@@ -268,6 +306,41 @@ seriación ni qué combinación de grupos le conviene el próximo semestre.
   Ojo: si se borra una especialidad de la semilla desde el admin, vuelve a aparecer en el siguiente arranque.
 - Servicio Social y Actividades Complementarias se consideran **en paralelo** (no suman semestres a la estimación).
 - Validado con un kardex real: 49 materias aprobadas (igual que el SII), 260 créditos en el plan (igual que el PDF).
+
+### 7.2 Contrato de la Demanda de grupos (IMPLEMENTADO — rama `a/demanda-grupos`)
+
+Tipos en `frontend/src/types/api.ts` (sección DEMANDA DE GRUPOS). Hooks listos:
+
+```ts
+// ---- Alumno (sesión del SII) — src/api/planificador.ts ----
+useMiHorario()          // GET    /api/planificador/mi-horario → MiHorario
+useGuardarMiHorario()   // PUT    /api/planificador/mi-horario { grupoIds: number[] } → MiHorario   (mutate(ids))
+useBorrarMiHorario()    // DELETE /api/planificador/mi-horario → MiHorario                        (mutate())
+
+MiHorario = { periodo: "27/1", periodoTexto: "Ene–Jun 2027", guardado: { grupos: GrupoOferta[], creditos, actualizado: ISO } | null }
+// Errores 400 DATOS_INVALIDOS con mensaje listo: "Elegiste dos grupos de X", "X (grupo A) choca con Y (grupo B)",
+// "Suman 40 créditos; la carga máxima es 36", "Algún grupo ya no está disponible o no puedes cursar esa materia".
+
+// ---- Coordinación (sesión de admin) — src/api/admin.ts ----
+useDemanda({ periodo?, simulados?: boolean })   // GET    /api/admin/demanda[?periodo=27/1][&simulados=false] → Demanda
+useRegenerarSimulados()                          // POST   /api/admin/demanda/simulados { alumnos?: 10–300 }  (mutate(150))
+useBorrarSimulados()                             // DELETE /api/admin/demanda/simulados
+
+Demanda = {
+  periodo, periodoTexto, incluyeSimulados,
+  resumen: { alumnos, alumnosReales, alumnosSimulados, gruposLlenos, materiasConFaltante, lugaresFaltantes },
+  porEspecialidad: { especialidad, alumnos }[],
+  materias: {                                    // ordenadas: abrir → redistribuir → baja → sin_demanda → sin recomendación
+    clave, nombre, semestre, planeados, cupoTotal, faltan,
+    grupos: { id, grupo, docente, cupo, planeados, reales, simulados, ocupacion /* 1 = lleno */, nivel: "lleno"|"alto"|"normal"|"bajo" }[],
+    recomendacion: { tipo: "abrir"|"redistribuir"|"baja"|"sin_demanda", mensaje } | null
+  }[]
+}
+```
+
+Reglas de las recomendaciones (en `backend/src/planificador/demanda.ts`, función pura `recomendar()`):
+**abrir** si los planeados superan el cupo total · **redistribuir** si un grupo está lleno y otro bajo el 50 % ·
+**baja** si con varios grupos la demanda no llena ni el 40 % de uno · **sin_demanda** si nadie la planeó.
 
 ### 7.1 Contrato del Planificador (IMPLEMENTADO — ya funciona)
 
@@ -440,7 +513,8 @@ Editor recomendado: VS Code con las extensiones *ESLint*, *Prettier* y *Tailwind
 
 ### Estado de B (5 nov)
 B1, B2, B3 (incluido el panel admin) y el README ya están en `main`. Lo que queda de B:
-1. ~~`b/generador-mejoras`~~ → PR abierto, pendiente de revisión de A.
+1. ~~`b/generador-mejoras`~~ ✅ en `main` (PR #7).
+1b. **Demanda de grupos — frontend** (§0A): guardar horario en el Generador y página Admin → Demanda.
 2. Propuesta escrita del Planificador en `docs/propuesta-planificador.md`.
 3. Volver a tomar las capturas del README con el diseño nuevo (claro y oscuro, escritorio y celular).
 
@@ -500,8 +574,9 @@ B1, B2, B3 (incluido el panel admin) y el README ya están en `main`. Lo que que
 
 **La parte de A está terminada.** Pendientes chicos que surgieron el 5 nov (detalle en §0):
 5. ~~Deploy de Vercel del PR #6~~ ✅
-6. Revisar el PR `b/generador-mejoras` (cambio en `logica.ts`: co-requisitos bloqueados).
-7. Pasar a B la contraseña de admin de producción.
+6. ~~Revisar el PR `b/generador-mejoras`~~ ✅ aprobado (los 3 casos de co-requisitos están bien).
+7. Pasar a B la contraseña de admin de producción (por WhatsApp).
+8. ~~Backend de **Demanda de grupos**~~ ✅ (rama `a/demanda-grupos`, §0A y §7.2).
 
 Si B necesita algo del backend o de `api/`, que lo pida.
 
