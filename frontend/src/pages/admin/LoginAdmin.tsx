@@ -4,6 +4,7 @@ import { ArrowLeft, Eye, EyeOff, LockKeyhole, ShieldCheck } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { Link, Navigate, useSearchParams } from "react-router";
 import { useLoginAdmin, useSesionAdmin } from "../../api/admin";
+import FondoPantalla from "../../components/FondoPantalla";
 import { Boton, Campo, claseInput, MensajeError } from "./componentes";
 
 export default function LoginAdmin() {
@@ -23,17 +24,18 @@ export default function LoginAdmin() {
   };
 
   return (
-    <div className="grid min-h-full place-items-center bg-marca-900 p-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 flex flex-col items-center text-center text-white">
-          <div className="grid size-12 place-items-center rounded-2xl bg-white/10"><ShieldCheck className="size-6" /></div>
-          <h1 className="mt-3 text-2xl font-extrabold tracking-tight">Panel de administración</h1>
-          <p className="mt-1 text-sm text-marca-200">Retícula, seriación y oferta de grupos del Planificador</p>
+    <div className="relative grid min-h-full place-items-center overflow-hidden p-4">
+      <FondoPantalla />
+      <div className="relative w-full max-w-sm">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <div className="grid size-[64px] place-items-center rounded-[28%] bg-gradient-to-b from-slate-600 to-slate-800 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.25)]"><ShieldCheck className="size-8" /></div>
+          <h1 className="mt-4 text-[28px] font-bold text-slate-900">Panel de administración</h1>
+          <p className="mt-1 text-[15px] text-slate-600">Retícula, seriación y oferta de grupos del Planificador</p>
         </div>
 
-        <form onSubmit={enviar} className="rounded-2xl bg-white p-6 shadow-2xl">
+        <form onSubmit={enviar} className="vidrio rounded-[28px] p-5">
           {params.get("motivo") === "expirada" && (
-            <p className="mb-4 rounded-xl bg-medio-suave px-3 py-2 text-sm text-medio">Tu sesión de administrador expiró. Vuelve a entrar.</p>
+            <p className="mb-4 rounded-[14px] bg-medio-suave px-3 py-2 text-[14px] text-medio">Tu sesión de administrador expiró. Vuelve a entrar.</p>
           )}
           <div className="flex flex-col gap-4">
             <Campo etiqueta="Usuario">
@@ -53,13 +55,13 @@ export default function LoginAdmin() {
 
           {login.error && <MensajeError>{login.error.message}</MensajeError>}
 
-          <Boton type="submit" cargando={login.isPending} className="mt-5 w-full py-2.5">
+          <Boton type="submit" cargando={login.isPending} className="mt-5 w-full py-3 text-[17px]">
             <LockKeyhole className="size-4" /> Entrar
           </Boton>
           <p className="mt-4 text-center text-xs text-slate-400">Estas credenciales son del administrador, no las del SII.</p>
         </form>
 
-        <Link to="/" className="mt-5 flex items-center justify-center gap-1.5 text-sm font-semibold text-marca-200 hover:text-white">
+        <Link to="/" className="mt-5 flex items-center justify-center gap-1.5 text-[15px] font-medium text-marca-500">
           <ArrowLeft className="size-4" /> Volver a la app del alumno
         </Link>
       </div>

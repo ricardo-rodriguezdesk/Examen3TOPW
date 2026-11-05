@@ -45,7 +45,7 @@ Copiar de otros equipos anula el examen.
 | Despliegue | Front en **Vercel**, back en **Render**, BD en **Neon** | arquitectura de 2 capas visible |
 | Comunicación front→back | Rewrite de Vercel `/api/*` → Render | mismo dominio: sin CORS y la cookie funciona en Safari |
 | Sesión | Token del SII en **cookie httpOnly** puesta por el backend | el JS del navegador nunca ve el token |
-| Estilos | **Tailwind CSS** | rápido y consistente |
+| Estilos | **Tailwind CSS** con sistema de diseño **estilo iOS 27** (tokens en `src/index.css`) | se ve como app nativa; modo oscuro automático; ver §8.2 |
 | Peticiones en el front | **TanStack Query** | caché, loading y error gratis |
 | Gráficas | **Recharts** | sencillo con React |
 | Íconos | **lucide-react** | |
@@ -106,6 +106,7 @@ Base: `https://sii.celaya.tecnm.mx/api`
 | **Planificador — frontend: panel admin** (login, materias, oferta, planes) | **B** | ✅ Hecho y probado con el backend real |
 | Despliegue Render + Vercel | A | ✅ En producción |
 | Base de datos Neon en producción | A | ✅ Conectada (`/api/salud/bd` → postgresql, 59 materias, 112 grupos) |
+| **Rediseño estilo iOS 27 (toda la app, claro y oscuro)** | **B** | ✅ Hecho (rama `b/rediseno`) |
 | **README, capturas, propuesta escrita del Planificador** | **B** | ⏳ Pendiente |
 | Retícula oficial de ISC con seriación | A | ✅ Cargada (especialidades IDP, GTE y ADG — esta última por B) |
 
@@ -361,6 +362,17 @@ sii-planner/
 - **Producción:** `frontend/vercel.json` reenvía `/api/*` a Render. A pone la URL real al desplegar.
 
 ---
+
+## 8.2 Sistema de diseño (estilo iOS 27) — acordado A + B
+
+- **Tipografía:** fuente del sistema (`-apple-system`: SF Pro en Mac/iPhone). Títulos de página de 34 px (`EncabezadoPagina`).
+- **Colores:** las mismas clases de siempre, pero reasignadas a colores de sistema de Apple con **modo oscuro automático**:
+  `slate-*` = grises de sistema, `marca-*` = azul de sistema (#007AFF), `alto/medio/bajo` = verde/naranja/rojo de iOS.
+  Superficies: `bg-fondo` (fondo agrupado), `bg-superficie` (tarjetas; **no usar `bg-white`**), `bg-relleno` (campos y controles), `border-separador`.
+- **Material Liquid Glass:** clase `.vidrio` solo para lo que flota (barra lateral, barra de pestañas, menús, paneles sobre el mapa).
+  `.borde-scroll` para barras que se difuminan al hacer scroll. Ambas se vuelven sólidas con "Reducir transparencia".
+- **Componentes CSS:** `.segmentado` + `.segmento` (control segmentado en cápsula; se activa con `aria-selected`, `aria-pressed` o `aria-current`) y `.campo` (campo de texto/select).
+- **Reglas:** sin etiquetas en MAYÚSCULAS; listas agrupadas (filas con separador) en vez de tablas cuando se pueda; botones en cápsula (`rounded-full`); esquinas de tarjeta 22 px.
 
 ## 9. Configurar la Mac (B, una sola vez)
 

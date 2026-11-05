@@ -54,14 +54,14 @@ export default function AdminOferta() {
       </EncabezadoPagina>
 
       <Card className="mb-4 flex flex-col gap-3 p-3! md:flex-row md:items-center">
-        <select aria-label="Periodo" value={periodo} onChange={(e) => setPeriodoSel(e.target.value)} className={`${claseInput} bg-slate-50 md:w-56`}>
+        <select aria-label="Periodo" value={periodo} onChange={(e) => setPeriodoSel(e.target.value)} className={`${claseInput} md:w-56`}>
           {periodos.length === 0 && <option value={periodo}>{textoPeriodo(periodo)}</option>}
           {periodos.map((p) => <option key={p} value={p}>{textoPeriodo(p)} ({p})</option>)}
         </select>
         <label className="relative flex-1">
           <span className="sr-only">Buscar</span>
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
-          <input type="search" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Buscar por materia, clave o docente…" className={`${claseInput} bg-slate-50 pl-9`} />
+          <input type="search" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Buscar por materia, clave o docente…" className={`${claseInput} pl-9`} />
         </label>
       </Card>
 
@@ -76,7 +76,7 @@ export default function AdminOferta() {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] text-sm">
-              <thead className="bg-slate-50 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase">
+              <thead className="bg-slate-50 text-left text-xs font-semibold text-slate-500">
                 <tr>
                   <th className="px-5 py-3">Materia</th>
                   <th className="px-3 py-3 text-center">Grupo</th>
@@ -228,7 +228,7 @@ function FormularioGrupo({ grupo, base, periodoInicial, materias, onCerrar }: {
         {/* Bloques */}
         <div>
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Horario ({f.bloques.length} bloques)</p>
+            <p className="text-xs font-semibold text-slate-500">Horario ({f.bloques.length} bloques)</p>
             <div className="flex gap-2">
               <Boton type="button" variante="secundario" className="px-3! py-1.5! text-xs" onClick={repetirLV} title="Copia el primer bloque a lunes, martes, miércoles, jueves y viernes">
                 <Repeat className="size-3.5" /> Repetir de lunes a viernes
@@ -256,7 +256,7 @@ function FormularioGrupo({ grupo, base, periodoInicial, materias, onCerrar }: {
 
         {preview.length > 0 && (
           <div>
-            <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-slate-500">
               <User className="size-3.5" /> Así lo verá el alumno
             </p>
             <HorarioGrid bloques={preview} dias={dias} horaInicio={horaIni} horaFin={Math.max(horaFin, horaIni + 1)} marcarHoy={false} />

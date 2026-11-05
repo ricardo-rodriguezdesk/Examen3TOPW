@@ -60,14 +60,14 @@ export default function AdminMaterias() {
         <label className="relative flex-1">
           <span className="sr-only">Buscar</span>
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
-          <input type="search" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Buscar por clave o nombre…" className={`${claseInput} bg-slate-50 pl-9`} />
+          <input type="search" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Buscar por clave o nombre…" className={`${claseInput} pl-9`} />
         </label>
-        <select aria-label="Especialidad" value={String(esp)} onChange={(e) => setEsp(e.target.value === "todas" || e.target.value === "comun" ? e.target.value : Number(e.target.value))} className={`${claseInput} bg-slate-50 md:w-72`}>
+        <select aria-label="Especialidad" value={String(esp)} onChange={(e) => setEsp(e.target.value === "todas" || e.target.value === "comun" ? e.target.value : Number(e.target.value))} className={`${claseInput} md:w-72`}>
           <option value="todas">Todas las materias</option>
           <option value="comun">Solo tronco común</option>
           {planes.data?.flatMap((p) => p.especialidades.map((e) => <option key={e.id} value={e.id}>Tronco común + {e.nombre}</option>))}
         </select>
-        <select aria-label="Semestre" value={String(semestre)} onChange={(e) => setSemestre(e.target.value === "todos" ? "todos" : Number(e.target.value))} className={`${claseInput} bg-slate-50 md:w-40`}>
+        <select aria-label="Semestre" value={String(semestre)} onChange={(e) => setSemestre(e.target.value === "todos" ? "todos" : Number(e.target.value))} className={`${claseInput} md:w-40`}>
           <option value="todos">Todos los semestres</option>
           {semestres.map((s) => <option key={s} value={s}>Semestre {s}</option>)}
         </select>
@@ -84,7 +84,7 @@ export default function AdminMaterias() {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] text-sm">
-              <thead className="bg-slate-50 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase">
+              <thead className="bg-slate-50 text-left text-xs font-semibold text-slate-500">
                 <tr>
                   <th className="px-5 py-3">Clave</th>
                   <th className="px-3 py-3">Materia</th>
@@ -248,7 +248,7 @@ function FormularioMateria({ materia, planes, todas, especialidadInicial, onCerr
 
         {/* Seriación */}
         <div>
-          <p className="mb-1 text-xs font-semibold tracking-wide text-slate-500 uppercase">Seriación</p>
+          <p className="mb-1 text-xs font-semibold text-slate-500">Seriación</p>
           <p className="mb-2 text-xs text-slate-400">
             <b>Pre-requisito:</b> debe acreditarse antes. <b>Co-requisito:</b> se cursa en el mismo semestre. Haz clic en el tipo para cambiarlo.
           </p>
@@ -257,11 +257,11 @@ function FormularioMateria({ materia, planes, todas, especialidadInicial, onCerr
             {f.requisitos.map((r) => {
               const m = porId.get(r.id);
               return (
-                <span key={r.id} className={clsx("inline-flex items-center gap-1 rounded-lg border bg-white py-1 pr-1 pl-2 text-xs", r.tipo === "co" ? "border-dashed border-violet-300" : "border-slate-200")}>
+                <span key={r.id} className={clsx("inline-flex items-center gap-1 rounded-lg border bg-superficie py-1 pr-1 pl-2 text-xs", r.tipo === "co" ? "border-dashed border-violet-300" : "border-slate-200")}>
                   <span className="font-mono font-semibold text-slate-700">{m?.clave}</span>
                   <span className="hidden max-w-40 truncate text-slate-500 sm:inline">{m && tituloBonito(m.nombre)}</span>
                   <button type="button" onClick={() => set("requisitos", f.requisitos.map((x) => x.id === r.id ? { ...x, tipo: x.tipo === "pre" ? "co" : "pre" } : x))}
-                    className={clsx("rounded px-1.5 py-0.5 text-[10px] font-bold uppercase", r.tipo === "co" ? "bg-violet-100 text-violet-700" : "bg-slate-100 text-slate-600")}
+                    className={clsx("rounded px-1.5 py-0.5 text-[10px] font-bold", r.tipo === "co" ? "bg-violet-100 text-violet-700" : "bg-slate-100 text-slate-600")}
                     title="Cambiar entre pre y co-requisito">
                     {r.tipo}
                   </button>

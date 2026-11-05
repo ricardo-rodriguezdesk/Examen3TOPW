@@ -31,11 +31,11 @@ export default function Avance() {
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Créditos */}
         <Card className="lg:col-span-2">
-          <p className="flex items-center gap-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+          <p className="flex items-center gap-2 text-xs font-semibold text-slate-500">
             <GraduationCap className="size-4 text-marca-500" /> Créditos de la carrera
           </p>
           <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-1">
-            <p className="text-5xl font-extrabold tracking-tight text-slate-900 tabular-nums">{resumen.porcentaje}%</p>
+            <p className="text-[48px] leading-none font-bold tracking-tight text-slate-900 tabular-nums">{resumen.porcentaje}<span className="text-[26px] text-slate-500">%</span></p>
             <p className="pb-1.5 text-slate-500">
               <b className="text-slate-800 tabular-nums">{resumen.creditosAprobados}</b> de {resumen.creditosTotales} créditos aprobados
             </p>
@@ -54,20 +54,20 @@ export default function Avance() {
         </Card>
 
         {/* Egreso */}
-        <Card className="flex flex-col border-transparent bg-marca-900! text-white">
-          <p className="flex items-center gap-2 text-xs font-semibold tracking-wide text-marca-200 uppercase">
+        <Card className="flex flex-col bg-gradient-to-br from-[#3d9bff] to-[#0058c0] text-white shadow-[0_12px_30px_-12px_rgb(0_100_220/0.6)]">
+          <p className="flex items-center gap-2 text-xs font-semibold text-marca-200">
             <CalendarCheck className="size-4" /> Egreso estimado
           </p>
-          <p className="mt-3 text-3xl font-extrabold tracking-tight">{resumen.egresoEstimado}</p>
+          <p className="mt-2 text-[34px] leading-tight font-bold">{resumen.egresoEstimado}</p>
           <p className="mt-1 text-sm text-marca-200">
             Al ritmo de tus semestres anteriores
           </p>
           <div className="mt-auto grid grid-cols-2 gap-3 pt-5">
-            <div className="rounded-xl bg-white/10 p-3">
+            <div className="rounded-[16px] bg-white/15 p-3">
               <p className="text-2xl font-bold tabular-nums">{resumen.semestresCursados}</p>
               <p className="text-xs text-marca-200">semestres cursados</p>
             </div>
-            <div className="rounded-xl bg-white/10 p-3">
+            <div className="rounded-[16px] bg-white/15 p-3">
               <p className="text-2xl font-bold tabular-nums">{resumen.semestresRestantesEstimados}</p>
               <p className="text-xs text-marca-200">restantes (estimado)</p>
             </div>
@@ -81,7 +81,7 @@ export default function Avance() {
           const n = materias.filter((m) => m.estado === e).length;
           return (
             <Link key={e} to={`/planificador/mapa?estado=${e}`} className="group">
-              <Card className="h-full p-4 transition group-hover:border-marca-200 group-hover:shadow-md">
+              <Card className="h-full p-4 transition group-hover:bg-slate-50 group-active:scale-[0.98]">
                 <span className={clsx("inline-block size-3 rounded-full", estiloEstado[e].punto)} />
                 <p className="mt-2 text-2xl font-bold text-slate-900 tabular-nums">{n}</p>
                 <p className="text-sm text-slate-500">{estiloEstado[e].etiqueta}</p>
@@ -102,9 +102,9 @@ export default function Avance() {
 // ---------------- Alertas ----------------
 
 const nivelAlerta: Record<AlertaPlan["nivel"], { icono: LucideIcon; clase: string; texto: string }> = {
-  critica: { icono: OctagonAlert, clase: "border-bajo/30 bg-bajo-suave text-bajo", texto: "Crítica" },
-  advertencia: { icono: TriangleAlert, clase: "border-medio/30 bg-medio-suave text-medio", texto: "Advertencia" },
-  info: { icono: Info, clase: "border-marca-200 bg-marca-50 text-marca-700", texto: "Info" },
+  critica: { icono: OctagonAlert, clase: "bg-bajo-suave text-bajo", texto: "Crítica" },
+  advertencia: { icono: TriangleAlert, clase: "bg-medio-suave text-medio", texto: "Advertencia" },
+  info: { icono: Info, clase: "bg-marca-50 text-marca-700", texto: "Info" },
 };
 
 function Alertas({ alertas }: { alertas: AlertaPlan[] }) {
@@ -122,10 +122,10 @@ function Alertas({ alertas }: { alertas: AlertaPlan[] }) {
             const n = nivelAlerta[a.nivel];
             const Icono = n.icono;
             return (
-              <li key={i} className={clsx("flex gap-3 rounded-xl border p-3", n.clase)}>
+              <li key={i} className={clsx("flex gap-3 rounded-[16px] p-3", n.clase)}>
                 <Icono className="mt-0.5 size-5 shrink-0" />
                 <div className="min-w-0 text-sm">
-                  <p className="text-[11px] font-bold tracking-wide uppercase">{n.texto}{a.clave && ` · ${a.clave}`}</p>
+                  <p className="text-[11px] font-bold">{n.texto}{a.clave && ` · ${a.clave}`}</p>
                   <p className="mt-0.5 text-slate-700">{suavizarMayusculas(a.mensaje)}</p>
                 </div>
               </li>
@@ -161,7 +161,7 @@ function ProximoSemestre({ materias }: { materias: AvancePlan["materias"] }) {
       </ul>
       {conClase.length > 0 && (
         <Link to="/planificador/generador"
-          className="mt-auto inline-flex items-center justify-center gap-2 rounded-xl bg-marca-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-marca-800 sm:mt-4">
+          className="mt-auto inline-flex items-center justify-center gap-2 rounded-full bg-marca-700 px-4 py-3 text-[15px] font-semibold text-white hover:bg-marca-800 sm:mt-4">
           Armar mi horario <ArrowRight className="size-4" />
         </Link>
       )}
@@ -181,10 +181,10 @@ function SkeletonAvance() {
       <div><Skeleton className="h-8 w-40" /><Skeleton className="mt-2 h-4 w-80" /></div>
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2"><Skeleton className="h-3 w-40" /><Skeleton className="mt-4 h-12 w-48" /><Skeleton className="mt-5 h-4 w-full" /></Card>
-        <Skeleton className="h-48 rounded-2xl" />
+        <Skeleton className="h-48 rounded-[22px]" />
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}</div>
-      <div className="grid gap-4 lg:grid-cols-5"><Skeleton className="h-64 rounded-2xl lg:col-span-3" /><Skeleton className="h-64 rounded-2xl lg:col-span-2" /></div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-24 rounded-[22px]" />)}</div>
+      <div className="grid gap-4 lg:grid-cols-5"><Skeleton className="h-64 rounded-[22px] lg:col-span-3" /><Skeleton className="h-64 rounded-[22px] lg:col-span-2" /></div>
     </div>
   );
 }

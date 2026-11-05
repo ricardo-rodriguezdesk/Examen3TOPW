@@ -1,6 +1,5 @@
 // Subnavegación del Planificador (pestañas) y selector de especialidad. Las páginas hijas se dibujan en <Outlet />.
 // La especialidad elegida se comparte con Avance, Mapa y Generador por el contexto del Outlet (useEspecialidad()).
-import clsx from "clsx";
 import { Sparkles } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router";
@@ -29,14 +28,11 @@ export default function PlanificadorLayout() {
   return (
     <div>
       <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <nav className="flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1">
+        <nav className="segmentado max-w-full overflow-x-auto" aria-label="Planificador">
           {pestanas.map((p) => (
             <NavLink
               key={p.a} to={p.a} end={p.end}
-              className={({ isActive }) => clsx(
-                "whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold transition",
-                isActive ? "bg-white text-marca-700 shadow-sm" : "text-slate-500 hover:text-slate-800",
-              )}
+              className="segmento"
             >
               {p.texto}
             </NavLink>
@@ -45,11 +41,11 @@ export default function PlanificadorLayout() {
 
         {data && data.especialidades.length > 0 && (
           <label className="flex items-center gap-2 text-sm">
-            <span className="shrink-0 font-semibold text-slate-500">Especialidad</span>
+            <span className="shrink-0 text-[15px] text-slate-500">Especialidad</span>
             <select
               value={especialidad ?? data.especialidad?.clave ?? ""}
               onChange={(e) => setEspecialidad(e.target.value)}
-              className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-marca-500 focus:ring-2 focus:ring-marca-100 lg:max-w-72"
+              className="campo min-w-0 flex-1 py-1.5 font-medium lg:max-w-72"
             >
               {data.especialidades.map((e) => <option key={e.clave} value={e.clave}>{e.nombre}</option>)}
             </select>

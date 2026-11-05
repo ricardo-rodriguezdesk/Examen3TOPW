@@ -44,8 +44,8 @@ export default function Horario() {
     <div>
       <EncabezadoPagina titulo="Horario" subtitulo={subtitulo}>
         <div className="flex gap-2 text-sm">
-          <span className="rounded-full bg-white px-3 py-1 font-semibold text-slate-600 ring-1 ring-slate-200">{data.materias.length} materias</span>
-          <span className="rounded-full bg-white px-3 py-1 font-semibold text-slate-600 ring-1 ring-slate-200">{totalHoras} h/semana</span>
+          <span className="rounded-full bg-superficie px-3 py-1 font-semibold text-slate-600 ring-1 ring-slate-200">{data.materias.length} materias</span>
+          <span className="rounded-full bg-superficie px-3 py-1 font-semibold text-slate-600 ring-1 ring-slate-200">{totalHoras} h/semana</span>
         </div>
       </EncabezadoPagina>
 
@@ -58,7 +58,7 @@ export default function Horario() {
           {data.dias.map((d) => (
             <button
               key={d} onClick={() => setDiaMovil(d)}
-              className={clsx("flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold", d === diaSeleccionado ? "bg-white text-marca-700 shadow-sm" : "text-slate-500")}
+              className={clsx("flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold", d === diaSeleccionado ? "bg-superficie text-marca-700 shadow-sm" : "text-slate-500")}
             >
               {NOMBRE_DIA[d].slice(0, 3)}{d === hoy && " •"}
             </button>

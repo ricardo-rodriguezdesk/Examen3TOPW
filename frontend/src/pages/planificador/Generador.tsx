@@ -57,7 +57,7 @@ export default function Generador() {
       <EncabezadoPagina titulo="Generador de horarios" subtitulo={`Oferta de ${oferta.data.periodoTexto}: elige tus materias y te proponemos horarios sin choques`} />
 
       {oferta.data.grupos.length === 0 ? (
-        <Card className="flex flex-col items-center gap-3 border-dashed py-16 text-center">
+        <Card className="flex flex-col items-center gap-3 py-16 text-center">
           <CalendarSearch className="size-10 text-slate-300" />
           <p className="max-w-md text-slate-500">
             No tienes materias por inscribir en la oferta de {oferta.data.periodoTexto}. Si estás por egresar, revisa en <b>Avance</b> lo que te falta (servicio social, residencia, complementarias).
@@ -84,8 +84,8 @@ export default function Generador() {
                     <label className={clsx("flex items-center gap-3 px-5 py-2.5", grupos ? "cursor-pointer hover:bg-slate-50" : "cursor-not-allowed opacity-50")}>
                       <input type="checkbox" className="peer sr-only" checked={activa} disabled={!grupos} onChange={() => alternar(m.clave)} />
                       <span className={clsx(
-                        "grid size-5 shrink-0 place-items-center rounded-md border-2 transition peer-focus-visible:ring-2 peer-focus-visible:ring-marca-200",
-                        activa ? "border-marca-600 bg-marca-600 text-white" : "border-slate-300 bg-white",
+                        "grid size-[22px] shrink-0 place-items-center rounded-full border-[1.5px] transition peer-focus-visible:ring-2 peer-focus-visible:ring-marca-200",
+                        activa ? "border-marca-500 bg-marca-500 text-white" : "border-slate-300",
                       )}>
                         {activa && <Check className="size-3.5" strokeWidth={3} />}
                       </span>
@@ -107,11 +107,11 @@ export default function Generador() {
             <h2 className="font-bold text-slate-900">2. Preferencias</h2>
 
             <div>
-              <p className="mb-1.5 text-xs font-semibold tracking-wide text-slate-500 uppercase">Turno</p>
-              <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1">
+              <p className="mb-1.5 text-xs font-semibold text-slate-500">Turno</p>
+              <div className="segmentado grid w-full grid-cols-3">
                 {(["cualquiera", "matutino", "vespertino"] as Turno[]).map((t) => (
                   <button key={t} onClick={() => setTurno(t)} aria-pressed={turno === t}
-                    className={clsx("rounded-lg py-1.5 text-xs font-semibold capitalize transition", turno === t ? "bg-white text-marca-700 shadow-sm" : "text-slate-500 hover:text-slate-800")}>
+                    className="segmento capitalize">
                     {t}
                   </button>
                 ))}
@@ -122,7 +122,7 @@ export default function Generador() {
             <label className="flex cursor-pointer items-center justify-between gap-3">
               <span className="text-sm font-semibold text-slate-700">Evitar clases en sábado</span>
               <input type="checkbox" className="peer sr-only" checked={evitarSabado} onChange={(e) => setEvitarSabado(e.target.checked)} />
-              <span className="relative h-6 w-11 shrink-0 rounded-full bg-slate-300 transition peer-checked:bg-marca-600 peer-focus-visible:ring-2 peer-focus-visible:ring-marca-200 after:absolute after:top-0.5 after:left-0.5 after:size-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5" />
+              <span className="relative h-6 w-11 shrink-0 rounded-full bg-relleno transition peer-checked:bg-[#34c759] peer-focus-visible:ring-2 peer-focus-visible:ring-marca-200 after:absolute after:top-0.5 after:left-0.5 after:size-5 after:rounded-full after:bg-superficie after:shadow after:transition peer-checked:after:translate-x-5" />
             </label>
 
             <label className="block">
@@ -136,7 +136,7 @@ export default function Generador() {
 
             <button
               onClick={onGenerar} disabled={elegidas.length === 0 || excede || generar.isPending}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-marca-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-marca-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-marca-700 px-4 py-3 text-[15px] font-semibold text-white transition hover:bg-marca-800 disabled:cursor-not-allowed disabled:bg-slate-300"
             >
               <Sparkles className="size-4" /> {generar.isPending ? "Generando…" : "Generar horarios"}
             </button>
@@ -146,11 +146,11 @@ export default function Generador() {
         {/* ---------- Resultados ---------- */}
         <div className="min-w-0">
           {generar.isPending ? (
-            <div className="flex flex-col gap-3"><Skeleton className="h-12 w-full rounded-xl" /><Skeleton className="h-[520px] w-full rounded-2xl" /></div>
+            <div className="flex flex-col gap-3"><Skeleton className="h-12 w-full rounded-xl" /><Skeleton className="h-[520px] w-full rounded-[22px]" /></div>
           ) : generar.error ? (
             <ErrorState mensaje={generar.error.message} onReintentar={onGenerar} />
           ) : !generar.data ? (
-            <Card className="flex flex-col items-center gap-3 border-dashed py-16 text-center">
+            <Card className="flex flex-col items-center gap-3 py-16 text-center">
               <CalendarSearch className="size-10 text-slate-300" />
               <p className="max-w-sm text-slate-500">Marca las materias que quieres llevar, ajusta tus preferencias y presiona <b>Generar horarios</b>.</p>
             </Card>
@@ -177,7 +177,7 @@ function Resultados({ opciones, advertencias, activa, onActiva, orden }: {
 }) {
   // El backend ya explica cada problema: materias sin grupo, co-requisitos faltantes, carga excesiva…
   const aviso = advertencias.length > 0 && (
-    <div className="mb-4 flex gap-3 rounded-xl border border-medio/30 bg-medio-suave p-3 text-sm text-medio">
+    <div className="mb-4 flex gap-3 rounded-[16px] bg-medio-suave p-3 text-[14px] text-medio">
       <TriangleAlert className="mt-0.5 size-5 shrink-0" />
       <ul className="flex flex-col gap-1">
         {advertencias.map((a) => <li key={a} className="text-slate-700">{suavizarMayusculas(a)}</li>)}
@@ -204,8 +204,8 @@ function Resultados({ opciones, advertencias, activa, onActiva, orden }: {
         {opciones.map((op, i) => (
           <button key={i} onClick={() => onActiva(i)} aria-pressed={i === activa}
             className={clsx(
-              "flex shrink-0 flex-col items-start rounded-xl border px-4 py-2 text-left transition",
-              i === activa ? "border-marca-500 bg-marca-50" : "border-slate-200 bg-white hover:border-slate-300",
+              "flex shrink-0 flex-col items-start rounded-[16px] px-4 py-2 text-left transition",
+              i === activa ? "bg-marca-500 [&_span]:text-white" : "bg-superficie hover:bg-slate-50",
             )}>
             <span className={clsx("text-sm font-bold", i === activa ? "text-marca-700" : "text-slate-700")}>
               Opción {i + 1}{i === 0 && <span className="ml-1.5 rounded bg-alto px-1 py-0.5 text-[10px] text-white">MEJOR</span>}
@@ -247,7 +247,7 @@ function Resultados({ opciones, advertencias, activa, onActiva, orden }: {
 function Metrica({ icono: Icono, etiqueta, valor }: { icono: typeof Clock; etiqueta: string; valor: string }) {
   return (
     <Card className="p-3!">
-      <p className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-slate-500 uppercase"><Icono className="size-3.5" />{etiqueta}</p>
+      <p className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500"><Icono className="size-3.5" />{etiqueta}</p>
       <p className="mt-1 text-lg font-bold text-slate-900 tabular-nums">{valor}</p>
     </Card>
   );
@@ -258,8 +258,8 @@ function SkeletonGenerador() {
     <div>
       <Skeleton className="mb-2 h-8 w-64" /><Skeleton className="mb-6 h-4 w-96 max-w-full" />
       <div className="grid gap-6 xl:grid-cols-[300px_1fr]">
-        <div className="flex flex-col gap-4"><Skeleton className="h-80 rounded-2xl" /><Skeleton className="h-64 rounded-2xl" /></div>
-        <Skeleton className="h-96 rounded-2xl" />
+        <div className="flex flex-col gap-4"><Skeleton className="h-80 rounded-[22px]" /><Skeleton className="h-64 rounded-[22px]" /></div>
+        <Skeleton className="h-96 rounded-[22px]" />
       </div>
     </div>
   );
