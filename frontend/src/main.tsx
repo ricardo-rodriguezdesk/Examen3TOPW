@@ -9,6 +9,7 @@ import AppLayout from "./layouts/AppLayout";
 import AdminLayout from "./pages/admin/AdminLayout";
 import LoginAdmin from "./pages/admin/LoginAdmin";
 import AdminMaterias from "./pages/admin/Materias";
+import AdminDemanda from "./pages/admin/Demanda";
 import AdminOferta from "./pages/admin/Oferta";
 import AdminPlanes from "./pages/admin/Planes";
 import Calificaciones from "./pages/Calificaciones";
@@ -64,6 +65,7 @@ const router = createBrowserRouter([
       { index: true, element: <AdminMaterias /> },
       { path: "oferta", element: <AdminOferta /> },
       { path: "planes", element: <AdminPlanes /> },
+      { path: "demanda", element: <AdminDemanda /> },
     ],
   },
   { path: "*", element: <Navigate to="/" replace /> },
