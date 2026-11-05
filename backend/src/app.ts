@@ -3,9 +3,12 @@ import cors from "cors";
 import express, { type NextFunction, type Request, type Response } from "express";
 import { config } from "./config.js";
 import { limpiarSesion } from "./middleware/auth.js";
+import { db } from "./db/index.js";
 import { academicoRouter } from "./routes/academico.js";
+import { adminRouter } from "./routes/admin.js";
+import { planificadorRouter } from "./routes/planificador.js";
 import { authRouter } from "./routes/auth.js";
-import { AppError } from "./utils/errors.js";
+import { AppError, desdePostgres } from "./utils/errors.js";
 
 export const app = express();
 
@@ -34,7 +37,17 @@ app.get("/api/salud/sii", async (_req, res) => {
     res.status(503).json({ alcanzable: false, error: String((e as Error).cause ?? (e as Error).message), ms: Date.now() - inicio });
   }
 });
+app.get("/api/salud/bd", async (_req, res) => {
+  const d = await db();
+  const [r] = await d.query<{ materias: number; grupos: number }>(
+    "SELECT (SELECT count(*)::int FROM materias) AS materias, (SELECT count(*)::int FROM grupos) AS grupos",
+  );
+  res.json({ ok: true, motor: config.databaseUrl ? "postgresql" : "pglite", ...r });
+});
+
 app.use("/api/auth", authRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/planificador", planificadorRouter);
 app.use("/api", academicoRouter);
 
 app.use((_req, _res, next) => next(new AppError(404, "NO_ENCONTRADO", "Ruta no encontrada.")));
@@ -42,6 +55,8 @@ app.use((_req, _res, next) => next(new AppError(404, "NO_ENCONTRADO", "Ruta no e
 // Manejador central de errores: siempre responde { error: CODIGO, mensaje }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  const pg = desdePostgres(err);
+  if (pg) err = pg;
   if (err instanceof AppError) {
     if (err.codigo === "SESION_EXPIRADA") limpiarSesion(res);
     return res.status(err.status).json({ error: err.codigo, mensaje: err.message });

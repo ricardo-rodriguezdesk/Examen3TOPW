@@ -43,7 +43,7 @@ export function textoPeriodo(clave: string): string {
 }
 
 /** Orden cronológico de periodos: 1 (ene-jun) < V (verano) < 2 (ago-dic) */
-function ordenPeriodo(clave: string): number {
+export function ordenPeriodo(clave: string): number {
   const [aa, tipo] = clave.split("/");
   const sub = { "1": 1, V: 2, "3": 2, "2": 3 }[(tipo ?? "").toUpperCase()] ?? 0;
   return num(aa) * 10 + sub;

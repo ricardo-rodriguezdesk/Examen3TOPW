@@ -108,7 +108,85 @@ export interface Horario {
 
 export type CodigoError =
   | "CAMPOS_VACIOS" | "CREDENCIALES_INVALIDAS" | "SESION_REQUERIDA" | "SESION_EXPIRADA"
-  | "SII_NO_DISPONIBLE" | "SII_RESPUESTA_INVALIDA" | "DEMASIADOS_INTENTOS" | "NO_ENCONTRADO" | "ERROR_INTERNO";
+  | "SII_NO_DISPONIBLE" | "SII_RESPUESTA_INVALIDA" | "DEMASIADOS_INTENTOS" | "NO_ENCONTRADO"
+  | "DATOS_INVALIDOS" | "CONFLICTO" | "ADMIN_REQUERIDO" | "ERROR_INTERNO";
 
 export interface RespuestaError { error: CodigoError; mensaje: string }
 export interface Sesion { autenticado: boolean; expiraEn?: number }
+
+// ================= PLANIFICADOR (copia de backend/src/planificador/tipos.ts) =================
+
+export type EstadoMateria = "aprobada" | "cursando" | "disponible" | "bloqueada" | "reprobada";
+export type TipoMateria = "basica" | "especialidad" | "residencia" | "servicio" | "complementaria";
+
+export interface MateriaAvance {
+  clave: string;
+  nombre: string;
+  creditos: number;
+  semestreSugerido: number;
+  tipo: TipoMateria;
+  requisitos: string[];            // pre-requisitos (claves)
+  correquisitos: string[];         // co-requisitos: se cursan juntas
+  porcentajeRequerido: number | null;
+  estado: EstadoMateria;
+  calificacion: number | null;
+  intentos: number;
+  requisitosPendientes: string[];
+  faltaPorcentaje: boolean;
+}
+
+export interface Alerta { nivel: "info" | "advertencia" | "critica"; mensaje: string; clave?: string }
+
+export interface AvancePlan {
+  plan: { id: number; clave: string; nombre: string; creditosTotales: number };
+  especialidad: { id: number; clave: string; nombre: string; detectada: boolean } | null;
+  especialidades: { clave: string; nombre: string }[];
+  materias: MateriaAvance[];
+  resumen: {
+    creditosAprobados: number; creditosCursando: number; creditosTotales: number; porcentaje: number;
+    semestresCursados: number; semestresRestantesEstimados: number; egresoEstimado: string;
+  };
+  alertas: Alerta[];
+}
+
+export interface BloqueOferta { dia: DiaSemana; inicio: string; fin: string; salon: string | null }
+
+export interface GrupoOferta {
+  id: number; clave: string; nombre: string; creditos: number; grupo: string;
+  docente: string | null; cupo: number; bloques: BloqueOferta[];
+}
+
+export interface Oferta { periodo: string | null; periodoTexto: string; grupos: GrupoOferta[] }
+
+export interface Preferencias { turno?: "matutino" | "vespertino"; evitarSabado?: boolean; maxCreditos?: number }
+
+export interface OpcionHorario {
+  grupos: GrupoOferta[]; creditos: number; horasHueco: number; diasConClase: number;
+  horaEntrada: string; horaSalida: string; puntuacion: number;
+}
+
+export interface OpcionesHorario { opciones: OpcionHorario[]; sinSolucion: string[]; advertencias: string[] }
+
+// ================= ADMINISTRACIÓN =================
+
+export interface SesionAdmin { autenticado: boolean; usuario?: string; expiraEn?: number }
+
+export interface PlanAdmin {
+  id: number; clave: string; nombre: string; creditosTotales: number; materias: number;
+  especialidades: { id: number; clave: string; nombre: string; materias: number }[];
+}
+
+export interface MateriaAdmin {
+  id: number; planId: number; especialidadId: number | null; clave: string; nombre: string;
+  horasTeoria: number; horasPractica: number; creditos: number; semestre: number;
+  tipo: TipoMateria; porcentajeRequerido: number | null;
+  requisitos: { id: number; clave: string; nombre: string; tipo: "pre" | "co" }[];
+}
+/** Lo que se manda al crear/editar una materia */
+export type MateriaAdminEntrada = Omit<MateriaAdmin, "id" | "requisitos"> & { requisitos: { id: number; tipo: "pre" | "co" }[] };
+
+export interface GrupoAdmin {
+  id: number; materiaId: number; clave: string; nombre: string; periodo: string; grupo: string;
+  docente: string | null; cupo: number; bloques: BloqueOferta[];
+}
+export type GrupoAdminEntrada = Omit<GrupoAdmin, "id" | "clave" | "nombre">;

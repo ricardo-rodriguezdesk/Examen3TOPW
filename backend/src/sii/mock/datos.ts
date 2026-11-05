@@ -10,13 +10,13 @@ type FilaKardex = [clave: string, nombre: string, creditos: number, semestre: nu
 const O = "NORMAL / ORDINARIO", R = "REPETICIÓN", E = "CURSO ESPECIAL";
 
 const filas: FilaKardex[] = [
-  ["ACF-0901", "CÁLCULO DIFERENCIAL", 5, 1, "23/2", "64"],
+  ["ACF-2301", "CÁLCULO DIFERENCIAL", 5, 1, "23/2", "64"],
   ["AED-1285", "FUNDAMENTOS DE PROGRAMACIÓN", 5, 1, "23/2", "92"],
   ["ACC-0906", "FUNDAMENTOS DE INVESTIGACIÓN", 4, 1, "23/2", "88"],
   ["SCH-1024", "TALLER DE ADMINISTRACIÓN", 4, 1, "23/2", "85"],
   ["AEF-1041", "MATEMÁTICAS DISCRETAS", 5, 1, "23/2", "79"],
-  ["ACA-0907", "TALLER DE ÉTICA", 4, 1, "23/2", "95"],
-  ["ACF-0901", "CÁLCULO DIFERENCIAL", 5, 2, "24/1", "76", R],
+  ["ACH-2307", "TALLER DE ÉTICA", 4, 1, "23/2", "95"],
+  ["ACF-2301", "CÁLCULO DIFERENCIAL", 5, 2, "24/1", "76", R],
   ["ACF-0902", "CÁLCULO INTEGRAL", 5, 2, "24/1", "81"],
   ["AED-1286", "PROGRAMACIÓN ORIENTADA A OBJETOS", 5, 2, "24/1", "94"],
   ["AEC-1008", "CONTABILIDAD FINANCIERA", 4, 2, "24/1", "87"],

@@ -6,7 +6,7 @@
 > para que lo acuerde con A y actualicen este archivo **antes** de cambiar el código.
 > Ambos integrantes usan **macOS** (MacBook).
 
-Última actualización: 4 nov 2026 — por B
+Última actualización: 4 nov 2026 (noche) — por A · **Repo:** https://github.com/ricardo-rodriguezdesk/Examen3TOPW · **App:** https://examen3-topw.vercel.app · **API:** https://sii-planner-api.onrender.com
 
 ---
 
@@ -41,7 +41,7 @@ Copiar de otros equipos anula el examen.
 |---|---|---|
 | Frontend | **React + Vite + TypeScript** | SPA rápida, HMR, fácil de justificar |
 | Backend | **Node + Express 5 + TypeScript** | simple, los dos lo entienden |
-| Base de datos (Planificador) | **PostgreSQL en Neon** con **Prisma** | gratis, una sola URL de conexión |
+| Base de datos (Planificador) | **PostgreSQL**: Neon en producción, **PGlite** en desarrollo, con SQL directo (`pg`) | sin instalar nada en local; SQL claro de explicar; las tablas y la retícula se crean solas al arrancar |
 | Despliegue | Front en **Vercel**, back en **Render**, BD en **Neon** | arquitectura de 2 capas visible |
 | Comunicación front→back | Rewrite de Vercel `/api/*` → Render | mismo dominio: sin CORS y la cookie funciona en Safari |
 | Sesión | Token del SII en **cookie httpOnly** puesta por el backend | el JS del navegador nunca ve el token |
@@ -101,11 +101,12 @@ Base: `https://sii.celaya.tecnm.mx/api`
 | Dashboard y horario (front) + componente `HorarioGrid` | A | ✅ Hecho y probado (mock y datos reales) |
 | **Calificaciones (front)** | **B** | ✅ Hecho (mock) |
 | **Kardex (front)** | **B** | ✅ Hecho (mock) |
-| Planificador — backend (BD, retícula, lógica, generador, admin API) | A | ⏳ Pendiente |
+| Planificador — backend (BD, retícula OFICIAL, lógica, generador, admin API) | A | ✅ Hecho y probado (con kardex real y mock) |
 | **Planificador — frontend (mapa, avance, generador, panel admin)** | **B** | ⏳ Pendiente |
-| Despliegue (Render, Vercel, Neon) | A | ⏳ Pendiente |
+| Despliegue Render + Vercel | A | ✅ En producción |
+| Base de datos Neon en producción | A | ⏳ Conectar (en local ya funciona sin Neon) |
 | **README, capturas, propuesta escrita del Planificador** | **B** | ⏳ Pendiente |
-| Retícula de ISC con seriación (PDF de la coordinación) | Los dos | ⏳ Conseguirla |
+| Retícula oficial de ISC con seriación | A | ✅ Cargada (especialidades IDP y GTE) |
 
 > Cuando terminen algo, **actualicen esta tabla** en el mismo commit.
 
@@ -225,57 +226,64 @@ seriación ni qué combinación de grupos le conviene el próximo semestre.
    con su seriación, y la oferta de grupos del próximo periodo (datos simulados).
 
 **De dónde salen los datos:** el estado de cada materia se calcula cruzando el **kardex real** (SII) con la
-**retícula** (nuestra BD), usando la **clave de la materia** (ej. `AED-1026`). La retícula y la oferta las captura el
-administrador; pueden ser simuladas, porque el examen lo permite.
+**retícula** (nuestra BD), usando la **clave de la materia** (ej. `AED-1026`).
 
-### 7.1 Contrato del Planificador (BORRADOR — A lo implementa, B lo consume)
+- **Retícula: OFICIAL**, transcrita de los PDF del TecNM Celaya: ISIC-2010-224 (260 créditos), con las especialidades
+  **Inteligencia de Datos y Plataformas en la Nube (ISIE-IDP-2025-01)**, con toda su seriación, y **Gestión de
+  Tecnologías Emergentes (ISIE-GTE-2026-01)**, solo módulos. Flecha horizontal = **pre-requisito**; vertical = **co-requisito**
+  (se cursan juntas). Algunas materias piden **% de créditos** (IA 40 %, Prog. Lógica 50 %, Taller Inv. I 60 %,
+  IDD-2503/2504 65 %, Servicio Social 70 %, Residencias 80 %).
+- **Oferta de grupos: SIMULADA** para el periodo 27/1 (2 grupos por materia, A matutino y B vespertino), editable desde el admin.
+- **Especialidad:** se **detecta sola** con las claves del kardex; si no se detecta, se usa IDP. Se puede forzar con `?especialidad=CLAVE`.
+- Servicio Social y Actividades Complementarias se consideran **en paralelo** (no suman semestres a la estimación).
+- Validado con un kardex real: 49 materias aprobadas (igual que el SII), 260 créditos en el plan (igual que el PDF).
+
+### 7.1 Contrato del Planificador (IMPLEMENTADO — ya funciona)
+
+Tipos completos en `frontend/src/types/api.ts` (sección PLANIFICADOR y ADMINISTRACIÓN).
+**Hooks listos:** `src/api/planificador.ts` y `src/api/admin.ts`. No hace falta escribir `fetch`.
 
 ```ts
-type EstadoMateria = "aprobada" | "cursando" | "disponible" | "bloqueada" | "reprobada";
+// ---- Alumno (requiere sesión del SII) ----
+useAvance(especialidad?)      // GET  /api/planificador/avance[?especialidad=ISIE-IDP-2025-01]
+useOferta(especialidad?)      // GET  /api/planificador/oferta  → grupos del próximo periodo que SÍ puede cursar
+useGenerarHorarios()          // POST /api/planificador/generar { claves: string[], preferencias?: { turno?, evitarSabado?, maxCreditos? } }
 
-// GET /api/planificador/avance   (requiere sesión de alumno)
-interface AvancePlan {
-  plan: { id: number; clave: string; nombre: string; creditosTotales: number };
+AvancePlan = {
+  plan, especialidad: { clave, nombre, detectada } | null, especialidades: { clave, nombre }[],   // para un <select>
   materias: {
-    clave: string; nombre: string; creditos: number; semestreSugerido: number;
-    tipo: "basica" | "especialidad" | "residencia" | "servicio" | "complementaria";
-    requisitos: string[];            // claves de las materias previas (seriación)
-    estado: EstadoMateria;
-    calificacion: number | null;     // la acreditada, si existe
-    intentos: number;                // veces cursada según el kardex
-    requisitosPendientes: string[];  // las que la bloquean
-  }[];
-  resumen: {
-    creditosAprobados: number; creditosTotales: number; porcentaje: number;
-    semestresCursados: number; semestresRestantesEstimados: number; egresoEstimado: string; // "Ago–Dic 2027"
-  };
-  alertas: { nivel: "info" | "advertencia" | "critica"; mensaje: string; clave?: string }[];
+    clave, nombre, creditos, semestreSugerido, tipo,      // tipo: basica|especialidad|residencia|servicio|complementaria
+    requisitos: string[], correquisitos: string[],        // aristas del mapa (pre = flecha sólida, co = punteada)
+    porcentajeRequerido: number | null,
+    estado: "aprobada" | "cursando" | "disponible" | "bloqueada" | "reprobada",
+    calificacion, intentos,
+    requisitosPendientes: string[], faltaPorcentaje: boolean   // por qué está bloqueada
+  }[],
+  resumen: { creditosAprobados, creditosCursando, creditosTotales, porcentaje, semestresCursados, semestresRestantesEstimados, egresoEstimado },
+  alertas: { nivel: "info" | "advertencia" | "critica", mensaje, clave? }[]   // ya vienen ordenadas por gravedad
 }
-
-// GET /api/planificador/oferta   → grupos ofertados de las materias DISPONIBLES del alumno
-interface GrupoOferta {
-  id: number; clave: string; nombre: string; grupo: string; docente: string | null; cupo: number;
-  bloques: { dia: DiaSemana; inicio: string; fin: string; salon: string | null }[];
+Oferta = { periodo: "27/1", periodoTexto: "Ene–Jun 2027", grupos: GrupoOferta[] }
+GrupoOferta = { id, clave, nombre, creditos, grupo, docente, cupo, bloques: { dia, inicio: "07:00", fin: "09:00", salon }[] }
+OpcionesHorario = {
+  opciones: { grupos: GrupoOferta[], creditos, horasHueco, diasConClase, horaEntrada, horaSalida, puntuacion /* 0–100 */ }[], // máx. 10, la mejor primero
+  sinSolucion: string[],     // claves sin grupo compatible
+  advertencias: string[]     // co-requisitos faltantes, carga > 36 créditos, etc. → mostrarlas
 }
+// Error 400 DATOS_INVALIDOS si las materias superan maxCreditos (mostrar error.message).
 
-// POST /api/planificador/generar
-// cuerpo: { claves: string[]; preferencias?: { turno?: "matutino" | "vespertino"; evitarSabado?: boolean; maxCreditos?: number } }
-interface OpcionesHorario {
-  opciones: {
-    grupos: GrupoOferta[]; creditos: number;
-    horasHueco: number; horaEntrada: string; horaSalida: string; puntuacion: number;
-  }[];
-  sinSolucion: string[]; // claves que no tienen ningún grupo compatible
-}
-
-// ---- Administración (sesión de admin aparte: usuario y contraseña propios, NO los del SII) ----
-// POST /api/admin/login { usuario, password }  ·  POST /api/admin/logout  ·  GET /api/admin/sesion
-// CRUD: /api/admin/planes  ·  /api/admin/materias (incluye requisitos)  ·  /api/admin/oferta (incluye bloques)
-//   GET lista · GET /:id · POST crea · PUT /:id actualiza · DELETE /:id
+// ---- Administración (sesión PROPIA, no usa el SII). Desarrollo: usuario admin · contraseña admin123 ----
+useSesionAdmin() · useLoginAdmin() · useLogoutAdmin()        // /api/admin/sesion · login · logout
+usePlanesAdmin()                                              // planes con sus especialidades (ids para filtros)
+useMateriasAdmin({ especialidadId?: number | "comun" })       // lista con requisitos [{ id, clave, nombre, tipo }]
+useGuardarMateria()  → mutate({ id?, datos: MateriaAdminEntrada })   // sin id = crear; requisitos: [{ id, tipo: "pre"|"co" }]
+useEliminarMateria() → mutate(id)
+useOfertaAdmin(periodo?) · useGuardarGrupo() → mutate({ id?, datos: GrupoAdminEntrada }) · useEliminarGrupo()
+// Errores que muestra el backend: CONFLICTO (clave repetida), DATOS_INVALIDOS (con mensaje específico), ADMIN_REQUERIDO (→ /admin/login)
 ```
 
-> Es un **borrador**. Mientras A no tenga listas estas rutas, B trabaja con **datos de ejemplo locales** que tengan
-> exactamente estas formas (por ejemplo, `frontend/src/mocks/planificador.ts`). Cuando A las publique, solo se cambia la fuente de los datos.
+**Para probar todo en local:** backend con `SII_MODE=mock` y usuario `99030001` / `demo123`. La alumna ficticia está en
+7.º semestre y tiene materias disponibles, bloqueadas y cursando, así que sirve para ver todos los estados y probar el generador.
+Las rutas de admin se prueban con `admin` / `admin123`.
 
 ---
 
@@ -387,7 +395,7 @@ Editor recomendado: VS Code con las extensiones *ESLint*, *Prettier* y *Tailwind
 1. Clonar, levantar el backend en modo mock y probar las rutas en el navegador
    (después de hacer login, `GET /api/kardex` muestra el JSON).
 2. Leer `backend/src/sii/normalizar.ts` y `tipos-app.ts` para entender los datos.
-3. Empezar los **datos de ejemplo del Planificador** (`mocks/planificador.ts`) con las formas de la sección 7.1.
+3. El backend del Planificador **ya está listo**: usa los hooks de `src/api/planificador.ts` y `src/api/admin.ts` (sección 7.1). No hacen falta datos de ejemplo.
 4. Empezar a redactar la **propuesta escrita del Planificador**: problema, a quién afecta, cómo lo resuelve y beneficios concretos (1 página).
 
 ### B1 — Calificaciones (`pages/Calificaciones.tsx`)
@@ -413,8 +421,15 @@ Editor recomendado: VS Code con las extensiones *ESLint*, *Prettier* y *Tailwind
 - **Avance** (`Avance.tsx`): resumen, barra de créditos, egreso estimado y lista de alertas por nivel.
 - **Generador** (`Generador.tsx`): checklist de materias disponibles, preferencias, botón "Generar" y la lista de opciones,
   cada una mostrada con el componente **`HorarioGrid`** de A (el mismo de la página Horario).
-- **Panel admin** (`pages/admin/`): login de admin y tablas CRUD de materias (con selector múltiple de requisitos),
-  oferta (con editor de bloques por día) y planes.
+  Muestra `advertencias` y `sinSolucion`. Para dibujar una opción:
+  `opcion.grupos.flatMap((g, i) => g.bloques.map((b) => aBloqueGrid({ ...b, clave: g.clave, nombre: g.nombre, grupo: g.grupo }, i)))`.
+  Si `oferta.grupos` viene vacío, muestra un mensaje tipo "No tienes materias por inscribir" (pasa con alumnos a punto de egresar).
+- Selector de especialidad (opcional) con `avance.especialidades`; pásala a los 3 hooks.
+- **Panel admin** (`pages/admin/`): `LoginAdmin.tsx` con `useLoginAdmin()`; protege `AdminLayout` con `useSesionAdmin()`
+  (si `autenticado` es false → `/admin/login`); botón de cerrar sesión. **Materias**: tabla filtrable por especialidad,
+  formulario crear/editar (clave, nombre, HT, HP, créditos, semestre, tipo, % requerido) con selector múltiple de
+  requisitos (pre/co); eliminar con confirmación. **Oferta**: tabla por periodo, formulario con materia, grupo, docente, cupo y
+  editor de bloques (día, inicio, fin, salón; agregar/quitar filas).
 
 ### B4 — Entregables
 - `README.md`: descripción, tecnologías y su justificación, arquitectura (diagrama de la sección 3),
@@ -427,16 +442,16 @@ Editor recomendado: VS Code con las extensiones *ESLint*, *Prettier* y *Tailwind
 
 1. ~~Esqueleto del frontend, login, rutas protegidas y layout~~ ✅
 2. ~~Dashboard, horario y el componente `HorarioGrid`~~ ✅
-3. Backend del Planificador: Prisma + Neon, modelos, carga de la retícula de ISC, cálculo de estados, generador y rutas admin.
-4. Despliegue: Render (backend), Vercel (frontend con rewrite), Neon (BD).
+3. ~~Backend del Planificador: BD, retícula oficial, cálculo de estados, generador, rutas admin, hooks del front~~ ✅
+4. ~~Despliegue Render + Vercel~~ ✅ · Conectar Neon en Render ⏳
 
 ---
 
 ## 12. Cosas pendientes de decidir o conseguir
 
 - [ ] Fecha de entrega y de la exposición: ______
-- [ ] Conseguir la retícula oficial de ISC con su seriación (PDF de la coordinación).
-- [ ] Confirmar que el SII responde desde Render (primera prueba al desplegar).
+- [x] Retícula oficial de ISC con seriación (cargada).
+- [x] El SII sí responde desde Render (`/api/salud/sii` → alcanzable).
 - [ ] Nombre final de la app (provisional: **SII Planner**).
 - [ ] Grabar un video de respaldo de la demo, por si el SII se cae en la exposición.
 
