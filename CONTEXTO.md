@@ -6,7 +6,31 @@
 > para que lo acuerde con A y actualicen este archivo **antes** de cambiar el código.
 > Ambos integrantes usan **macOS** (MacBook).
 
-Última actualización: 5 nov 2026 — por B
+Última actualización: 5 nov 2026, 15:00 — por B (CONTEXTO 3, en el repo) · **Repo:** https://github.com/ricardo-rodriguezdesk/Examen3TOPW · **App:** https://examen3-topw.vercel.app · **API:** https://sii-planner-api.onrender.com
+
+---
+
+## 0. Novedades del 5 nov (léelo primero, A)
+
+**Ya está en `main`:**
+| PR | Qué | Notas para A |
+|---|---|---|
+| #1 | Calificaciones y Kardex | — |
+| #2 | Planificador: Avance, Mapa y Generador | Usa tus hooks y tipos (`api/planificador.ts`, `types/api.ts`). Selector de especialidad en `PlanificadorLayout` (se guarda en `localStorage`). |
+| #3 | Panel de administración (login, Materias, Oferta, Planes) | **Toqué tus archivos:** `api/admin.ts` (+4 hooks de planes/especialidades) y `main.tsx` (ruta `/admin/planes`). |
+| #4 | Especialidad **Administración Gerencial** (INTE-ADG-2025-02) | **Toqué tus archivos:** `db/semilla.ts` y `db/index.ts`. Nueva `completarEspecialidades()`: agrega especialidades faltantes a una BD con datos. Producción ya la tiene (`/api/salud/bd` → 66 materias, 126 grupos). |
+| #5 | README con instalación, tecnologías, arquitectura y capturas | Confirma que los comandos de Render de la sección "Despliegue" sean los que configuraste. |
+| #6 | **Rediseño estilo iOS 27** con modo oscuro (toda la app) | **Toqué tus archivos:** `index.css`, `components/ui`, `AppLayout`, `Login`, colores de `HorarioGrid`. Inicio y Horario se adaptaron solos con los tokens. Reglas en §8.2. |
+
+**Cosas que necesito de ti (A):**
+1. ~~Deploy del PR #6~~ ✅ A confirmó que el rediseño está en producción.
+2. **Revisar el PR del Generador** (rama `b/generador-mejoras`). Toca tu `backend/src/planificador/logica.ts`:
+   regla nueva **"si el co-requisito de una materia está bloqueado, la materia también"**. Caso real: *Ciberseguridad* (IDD-2502) salía *disponible*
+   aunque su co-requisito *Administración de Redes* (SCA-1002) está bloqueado, y el generador no podía armar nada con ella.
+   El co-requisito bloqueado se agrega a `requisitosPendientes` (sin cambiar el contrato; el front distingue pre/co con `correquisitos`).
+3. ✅ **Mensajes del generador con nombres** desde `logica.ts` (pedido por A), en el mismo PR. Además, si no hay combinación, el backend sugiere qué materia quitar y cuántas opciones hay con cualquier turno (campos nuevos `sugerencias` y `opcionesSinTurno`, ver §7.1).
+4. Pásame por privado la **contraseña de admin de producción** (para probar `/admin` en la app desplegada y para la demo).
+5. **Límite de intentos de login:** al probar mucho en local se activa `DEMASIADOS_INTENTOS`. Es correcto; solo tenlo presente en la demo (no hacer login muchas veces seguidas).
 
 ---
 
@@ -99,16 +123,18 @@ Base: `https://sii.celaya.tecnm.mx/api`
 | Esqueleto del frontend (Vite, router, Tailwind, cliente API, hooks, layout) | A | ✅ Hecho y probado en navegador |
 | Login, rutas protegidas, layout y navegación (front) | A | ✅ Hecho y probado |
 | Dashboard y horario (front) + componente `HorarioGrid` | A | ✅ Hecho y probado (mock y datos reales) |
-| **Calificaciones (front)** | **B** | ✅ Hecho (mock) |
-| **Kardex (front)** | **B** | ✅ Hecho (mock) |
+| **Calificaciones (front)** | **B** | ✅ En `main` (PR #1) |
+| **Kardex (front)** | **B** | ✅ En `main` (PR #1) |
 | Planificador — backend (BD, retícula OFICIAL, lógica, generador, admin API) | A | ✅ Hecho y probado (con kardex real y mock) |
-| **Planificador — frontend: avance, mapa y generador** (con selector de especialidad) | **B** | ✅ Hecho y probado con el backend real (mock) |
-| **Planificador — frontend: panel admin** (login, materias, oferta, planes) | **B** | ✅ Hecho y probado con el backend real |
+| **Planificador — frontend: avance, mapa y generador** (con selector de especialidad) | **B** | ✅ En `main` (PR #2) |
+| **Planificador — frontend: panel admin** (login, materias, oferta, planes) | **B** | ✅ En `main` (PR #3) |
 | Despliegue Render + Vercel | A | ✅ En producción |
 | Base de datos Neon en producción | A | ✅ Conectada (`/api/salud/bd` → postgresql, 59 materias, 112 grupos) |
-| **Rediseño estilo iOS 27 (toda la app, claro y oscuro)** | **B** | ✅ Hecho (rama `b/rediseno`) |
-| **README, capturas, propuesta escrita del Planificador** | **B** | ⏳ Pendiente |
-| Retícula oficial de ISC con seriación | A | ✅ Cargada (especialidades IDP, GTE y ADG — esta última por B) |
+| **Rediseño estilo iOS 27 (toda la app, claro y oscuro)** | **B** | ✅ En `main` (PR #6) y en producción |
+| **Generador: co-requisitos, nombres en mensajes y "qué materia quitar"** | **B** (+ revisión de A en `logica.ts`) | 🔄 PR abierto (rama `b/generador-mejoras`) |
+| **README** | **B** | ✅ En `main` (PR #5) — **las capturas muestran el diseño viejo: hay que retomarlas** |
+| **Propuesta escrita del Planificador** (`docs/propuesta-planificador.md`, el README ya la enlaza) | **B** | ⏳ Pendiente |
+| Retícula oficial de ISC con seriación | A | ✅ Cargada (especialidades IDP, GTE y ADG — esta última por B, PR #4) |
 
 > Cuando terminen algo, **actualicen esta tabla** en el mismo commit.
 
@@ -262,7 +288,8 @@ AvancePlan = {
     porcentajeRequerido: number | null,
     estado: "aprobada" | "cursando" | "disponible" | "bloqueada" | "reprobada",
     calificacion, intentos,
-    requisitosPendientes: string[], faltaPorcentaje: boolean   // por qué está bloqueada
+    requisitosPendientes: string[], faltaPorcentaje: boolean   // por qué está bloqueada (incluye co-requisitos bloqueados:
+                                                               //   si la pareja no se puede inscribir, esta tampoco)
   }[],
   resumen: { creditosAprobados, creditosCursando, creditosTotales, porcentaje, semestresCursados, semestresRestantesEstimados, egresoEstimado },
   alertas: { nivel: "info" | "advertencia" | "critica", mensaje, clave? }[]   // ya vienen ordenadas por gravedad
@@ -272,7 +299,9 @@ GrupoOferta = { id, clave, nombre, creditos, grupo, docente, cupo, bloques: { di
 OpcionesHorario = {
   opciones: { grupos: GrupoOferta[], creditos, horasHueco, diasConClase, horaEntrada, horaSalida, puntuacion /* 0–100 */ }[], // máx. 10, la mejor primero
   sinSolucion: string[],     // claves sin grupo compatible
-  advertencias: string[]     // co-requisitos faltantes, carga > 36 créditos, etc. → mostrarlas
+  advertencias: string[],    // co-requisitos faltantes, carga > 36 créditos, etc., YA CON NOMBRES → mostrarlas
+  sugerencias?: { quitar, nombre, opciones }[],  // solo si no hubo combinación: qué materia quitar y cuántas opciones salen sin ella
+  opcionesSinTurno?: number  // solo si se pidió turno y no hubo combinación: opciones con cualquier turno
 }
 // Error 400 DATOS_INVALIDOS si las materias superan maxCreditos (mostrar error.message).
 
@@ -319,11 +348,12 @@ sii-planner/
 ```
 
 **Reglas:**
+- **Flujo:** rama → probar en local → push de la rama → PR → el otro revisa (y la vista previa de Vercel) → merge. **Nunca commits directos a `main`.**
 - **Ramas**: `main` siempre funciona. Cada quien trabaja en su rama (`b/calificaciones`, `a/dashboard`…) y
   une con **Pull Request**; el otro le da un vistazo rápido antes del merge.
 - **Antes de empezar el día**: `git pull origin main` y unir `main` a tu rama.
 - **No editar archivos del otro** sin avisar. Si B necesita algo en `api/`, `components/ui/` o en el backend, se lo pide a A, o lo hace y lo avisa en el PR.
-- **Commits en español**, cortos y en imperativo: `Agrega filtro por periodo en calificaciones`.
+- **Commits en español**, cortos y en imperativo: `Agrega filtro por periodo en calificaciones`. Sin líneas de atribución a herramientas de IA.
 - **Nunca subir** `.env`, tokens ni datos personales reales. Los datos de ejemplo siempre son **ficticios**.
 - Si cambia una decisión o un contrato, **primero se actualiza este archivo**.
 
@@ -408,6 +438,12 @@ Editor recomendado: VS Code con las extensiones *ESLint*, *Prettier* y *Tailwind
 
 ## 10. Tareas de B, paso a paso
 
+### Estado de B (5 nov)
+B1, B2, B3 (incluido el panel admin) y el README ya están en `main`. Lo que queda de B:
+1. ~~`b/generador-mejoras`~~ → PR abierto, pendiente de revisión de A.
+2. Propuesta escrita del Planificador en `docs/propuesta-planificador.md`.
+3. Volver a tomar las capturas del README con el diseño nuevo (claro y oscuro, escritorio y celular).
+
 ### Para arrancar (el esqueleto del frontend ya está)
 1. Clonar, levantar el backend en modo mock y probar las rutas en el navegador
    (después de hacer login, `GET /api/kardex` muestra el JSON).
@@ -462,7 +498,12 @@ Editor recomendado: VS Code con las extensiones *ESLint*, *Prettier* y *Tailwind
 3. ~~Backend del Planificador: BD, retícula oficial, cálculo de estados, generador, rutas admin, hooks del front~~ ✅
 4. ~~Despliegue Render + Vercel + Neon~~ ✅
 
-**La parte de A está terminada.** Si B necesita algo del backend o de `api/`, que lo pida.
+**La parte de A está terminada.** Pendientes chicos que surgieron el 5 nov (detalle en §0):
+5. ~~Deploy de Vercel del PR #6~~ ✅
+6. Revisar el PR `b/generador-mejoras` (cambio en `logica.ts`: co-requisitos bloqueados).
+7. Pasar a B la contraseña de admin de producción.
+
+Si B necesita algo del backend o de `api/`, que lo pida.
 
 ---
 
@@ -472,6 +513,11 @@ Editor recomendado: VS Code con las extensiones *ESLint*, *Prettier* y *Tailwind
 - [x] Retícula oficial de ISC con seriación (cargada).
 - [x] El SII sí responde desde Render (`/api/salud/sii` → alcanzable).
 - [ ] Nombre final de la app (provisional: **SII Planner**).
+- [x] El diseño nuevo ya está en producción (PR #6).
+- [ ] Contraseña de admin de producción para B.
+- [ ] Ensayar la demo: para el Generador con una cuenta real a punto de egresar, cambiar la **especialidad** en el selector
+      (sus materias salen disponibles); respaldo: modo mock en local (`99030001` / `demo123`).
+- [ ] Despertar Render unos minutos antes de exponer (abrir `/api/salud`), por el arranque en frío del plan gratis.
 - [ ] Grabar un video de respaldo de la demo, por si el SII se cae en la exposición.
 
 ## 13. Exposición (reparto)

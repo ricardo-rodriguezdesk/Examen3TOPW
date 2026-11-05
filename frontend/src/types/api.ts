@@ -165,7 +165,14 @@ export interface OpcionHorario {
   horaEntrada: string; horaSalida: string; puntuacion: number;
 }
 
-export interface OpcionesHorario { opciones: OpcionHorario[]; sinSolucion: string[]; advertencias: string[] }
+export interface OpcionesHorario {
+  opciones: OpcionHorario[]; sinSolucion: string[];
+  advertencias: string[]; // ya vienen con nombres de materia
+  /** Solo si no hubo combinación con todas: qué materia quitar y cuántas opciones salen sin ella. */
+  sugerencias?: { quitar: string; nombre: string; opciones: number }[];
+  /** Solo si se pidió turno y no hubo combinación: opciones con cualquier turno. */
+  opcionesSinTurno?: number;
+}
 
 // ================= ADMINISTRACIÓN =================
 

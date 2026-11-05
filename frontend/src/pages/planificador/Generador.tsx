@@ -3,15 +3,15 @@
 // Cada opción se dibuja con <HorarioGrid> (componente de A).
 
 import clsx from "clsx";
-import { CalendarSearch, Check, Clock, Coffee, Gauge, Layers, Sparkles, TriangleAlert, User } from "lucide-react";
+import { CalendarSearch, Check, Clock, Coffee, Gauge, Layers, Link2, Sparkles, TriangleAlert, User } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useAvance, useGenerarHorarios, useOferta } from "../../api/planificador";
 import HorarioGrid, { aBloqueGrid, colorMateria, DIAS_ORDEN } from "../../components/HorarioGrid";
 import { Badge, Card, EncabezadoPagina, ErrorState, Skeleton } from "../../components/ui";
 import { tituloBonito } from "../../lib/desempeno";
 import type { DiaSemana } from "../../types/api";
-import { suavizarMayusculas, useEspecialidad } from "../../lib/planificador";
-import type { OpcionHorario, Preferencias as PreferenciasHorario } from "../../types/api";
+import { useEspecialidad } from "../../lib/planificador";
+import type { OpcionesHorario, OpcionHorario, Preferencias as PreferenciasHorario } from "../../types/api";
 
 type Turno = "cualquiera" | "matutino" | "vespertino";
 
@@ -45,12 +45,23 @@ export default function Generador() {
   const creditosElegidos = elegidas.reduce((s, c) => s + creditosDe(c), 0);
   const excede = creditosElegidos > maxCreditos;
 
-  const alternar = (c: string) => setElegidas((xs) => (xs.includes(c) ? xs.filter((x) => x !== c) : [...xs, c]));
-  const onGenerar = () => {
-    const preferencias: PreferenciasHorario = { evitarSabado, maxCreditos, ...(turno !== "cualquiera" && { turno }) };
+  const estadoDe = (c: string) => avance.data.materias.find((m) => m.clave === c)?.estado;
+  const pareja = (cos: string[]) => cos.filter((c) => estadoDe(c) !== "aprobada" && estadoDe(c) !== "cursando");
+  const nombreDe = (c: string) => tituloBonito(avance.data.materias.find((m) => m.clave === c)?.nombre ?? c);
+  const marcables = new Set(inscribibles.filter((m) => gruposPorClave.has(m.clave)).map((m) => m.clave));
+  /** Al marcar una materia también se marcan sus co-requisitos inscribibles: se cursan juntas. */
+  const alternar = (c: string) => setElegidas((xs) => {
+    if (xs.includes(c)) return xs.filter((x) => x !== c);
+    const pareja = (avance.data.materias.find((m) => m.clave === c)?.correquisitos ?? []).filter((co) => marcables.has(co) && !xs.includes(co));
+    return [...xs, c, ...pareja];
+  });
+  const onGenerar = (claves = elegidas, t: Turno = turno) => {
+    const preferencias: PreferenciasHorario = { evitarSabado, maxCreditos, ...(t !== "cualquiera" && { turno: t }) };
     setOpcionActiva(0);
-    generar.mutate({ claves: elegidas, preferencias });
+    generar.mutate({ claves, preferencias });
   };
+  const quitarYGenerar = (c: string) => { const n = elegidas.filter((x) => x !== c); setElegidas(n); onGenerar(n); };
+  const cualquierTurno = () => { setTurno("cualquiera"); onGenerar(elegidas, "cualquiera"); };
 
   return (
     <div>
@@ -94,6 +105,11 @@ export default function Generador() {
                         <span className="block text-xs text-slate-400">
                           {m.clave} · {m.creditos} cr · {grupos ? `${grupos} grupo${grupos > 1 ? "s" : ""}` : "sin grupos este periodo"}
                         </span>
+                        {pareja(m.correquisitos).length > 0 && (
+                          <span className="mt-0.5 flex items-center gap-1 text-[12px] text-marca-500">
+                            <Link2 className="size-3" /> Junto con {pareja(m.correquisitos).map(nombreDe).join(", ")}
+                          </span>
+                        )}
                       </span>
                       {m.estado === "reprobada" && <Badge tono="bajo">Repetición</Badge>}
                     </label>
@@ -135,7 +151,7 @@ export default function Generador() {
             {excede && <p className="text-xs font-semibold text-bajo">Tus materias suman {creditosElegidos} créditos: quita alguna o sube el máximo.</p>}
 
             <button
-              onClick={onGenerar} disabled={elegidas.length === 0 || excede || generar.isPending}
+              onClick={() => onGenerar()} disabled={elegidas.length === 0 || excede || generar.isPending}
               className="inline-flex items-center justify-center gap-2 rounded-full bg-marca-700 px-4 py-3 text-[15px] font-semibold text-white transition hover:bg-marca-800 disabled:cursor-not-allowed disabled:bg-slate-300"
             >
               <Sparkles className="size-4" /> {generar.isPending ? "Generando…" : "Generar horarios"}
@@ -148,7 +164,7 @@ export default function Generador() {
           {generar.isPending ? (
             <div className="flex flex-col gap-3"><Skeleton className="h-12 w-full rounded-xl" /><Skeleton className="h-[520px] w-full rounded-[22px]" /></div>
           ) : generar.error ? (
-            <ErrorState mensaje={generar.error.message} onReintentar={onGenerar} />
+            <ErrorState mensaje={generar.error.message} onReintentar={() => onGenerar()} />
           ) : !generar.data ? (
             <Card className="flex flex-col items-center gap-3 py-16 text-center">
               <CalendarSearch className="size-10 text-slate-300" />
@@ -158,6 +174,10 @@ export default function Generador() {
             <Resultados
               opciones={generar.data.opciones}
               advertencias={generar.data.advertencias}
+              sugerencias={generar.data.sugerencias ?? []}
+              opcionesSinTurno={generar.data.opcionesSinTurno ?? 0}
+              onQuitar={quitarYGenerar}
+              onCualquierTurno={cualquierTurno}
               activa={Math.min(opcionActiva, Math.max(0, generar.data.opciones.length - 1))}
               onActiva={setOpcionActiva}
               orden={elegidas}
@@ -172,20 +192,53 @@ export default function Generador() {
 
 // ---------------- Resultados ----------------
 
-function Resultados({ opciones, advertencias, activa, onActiva, orden }: {
+function Resultados({ opciones, advertencias, sugerencias, opcionesSinTurno, onQuitar, onCualquierTurno, activa, onActiva, orden }: {
   opciones: OpcionHorario[]; advertencias: string[]; activa: number; onActiva: (i: number) => void; orden: string[];
+  sugerencias: NonNullable<OpcionesHorario["sugerencias"]>; opcionesSinTurno: number;
+  onQuitar: (clave: string) => void; onCualquierTurno: () => void;
 }) {
   // El backend ya explica cada problema: materias sin grupo, co-requisitos faltantes, carga excesiva…
   const aviso = advertencias.length > 0 && (
     <div className="mb-4 flex gap-3 rounded-[16px] bg-medio-suave p-3 text-[14px] text-medio">
       <TriangleAlert className="mt-0.5 size-5 shrink-0" />
       <ul className="flex flex-col gap-1">
-        {advertencias.map((a) => <li key={a} className="text-slate-700">{suavizarMayusculas(a)}</li>)}
+        {advertencias.map((a) => <li key={a} className="text-slate-700">{a}</li>)}
       </ul>
     </div>
   );
 
-  if (opciones.length === 0) return <div>{aviso || <Card className="py-12 text-center text-slate-500">No hay opciones sin choques. Quita alguna materia o cambia tus preferencias.</Card>}</div>;
+  if (opciones.length === 0) {
+    const plural = (n: number) => `${n === 10 ? "10+" : n} ${n === 1 ? "opción" : "opciones"}`;
+    return (
+      <div>
+        {aviso}
+        <Card className="flex flex-col gap-4">
+          <div>
+            <h2 className="text-[17px] font-semibold text-slate-900">No caben todas juntas</h2>
+            <p className="mt-0.5 text-[15px] text-slate-500">Prueba alguna de estas opciones:</p>
+          </div>
+          {(sugerencias.length > 0 || opcionesSinTurno > 0) ? (
+            <div className="flex flex-col gap-2">
+              {opcionesSinTurno > 0 && (
+                <button onClick={onCualquierTurno} className="flex items-center justify-between gap-3 rounded-[14px] bg-relleno px-4 py-3 text-left transition hover:bg-slate-100">
+                  <span className="text-[15px] text-slate-900">Usar <b>cualquier turno</b></span>
+                  <span className="text-[13px] font-semibold text-marca-500">{plural(opcionesSinTurno)}</span>
+                </button>
+              )}
+              {sugerencias.map((s) => (
+                <button key={s.quitar} onClick={() => onQuitar(s.quitar)} className="flex items-center justify-between gap-3 rounded-[14px] bg-relleno px-4 py-3 text-left transition hover:bg-slate-100">
+                  <span className="text-[15px] text-slate-900">Quitar <b>{tituloBonito(s.nombre)}</b></span>
+                  <span className="text-[13px] font-semibold text-marca-500">{plural(s.opciones)}</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[15px] text-slate-500">Quitar una sola materia no alcanza. Prueba con menos materias o con otras preferencias.</p>
+          )}
+        </Card>
+      </div>
+    );
+  }
 
   const o = opciones[activa];
   const color = (clave: string) => Math.max(0, orden.indexOf(clave));
