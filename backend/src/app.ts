@@ -17,6 +17,23 @@ app.use(cookieParser());
 app.use(cors({ origin: config.frontendOrigin, credentials: true }));
 
 app.get("/api/salud", (_req, res) => res.json({ ok: true, modo: config.siiMode }));
+
+// Diagnóstico de despliegue: ¿este servidor puede llegar al SII?
+// Hace un login con credenciales vacías (el SII responde 401 en el cuerpo, sin bloquear a nadie).
+app.get("/api/salud/sii", async (_req, res) => {
+  const inicio = Date.now();
+  try {
+    const r = await fetch(`${config.siiBaseUrl}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ email: "", password: "" }),
+      signal: AbortSignal.timeout(config.siiTimeoutMs),
+    });
+    res.json({ alcanzable: true, http: r.status, ms: Date.now() - inicio });
+  } catch (e) {
+    res.status(503).json({ alcanzable: false, error: String((e as Error).cause ?? (e as Error).message), ms: Date.now() - inicio });
+  }
+});
 app.use("/api/auth", authRouter);
 app.use("/api", academicoRouter);
 

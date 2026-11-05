@@ -8,10 +8,13 @@ import { decodificarJwt, msRestantes } from "../utils/jwt.js";
 
 export const authRouter = Router();
 
-// Máximo 10 intentos de login cada 15 min por IP (evita fuerza bruta y bloqueos de cuenta en el SII)
+// Máximo 10 intentos de login cada 15 min POR CUENTA (evita fuerza bruta y bloqueos de cuenta en el SII).
+// Se limita por número de control y no por IP: detrás del rewrite de Vercel muchas personas
+// pueden llegar con la misma IP y se bloquearían entre sí.
 const limiteLogin = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 10,
+  keyGenerator: (req) => "cuenta:" + armarEmail(String(req.body?.usuario ?? "")),
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, _res, next) =>
