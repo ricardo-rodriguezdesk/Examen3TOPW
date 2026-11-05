@@ -2,6 +2,7 @@ import clsx from "clsx";
 import {
   BookOpenCheck, CalendarDays, ClipboardList, GraduationCap, LayoutDashboard, LogOut, Map, type LucideIcon,
 } from "lucide-react";
+import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router";
 import { useEstudiante, useLogout } from "../api/hooks";
 import { tituloBonito } from "../lib/desempeno";
@@ -18,6 +19,7 @@ export default function AppLayout() {
   const { data: estudiante } = useEstudiante();
   const logout = useLogout();
   const navigate = useNavigate();
+  const [fotoRota, setFotoRota] = useState(false);
 
   const salir = () => logout.mutate(undefined, { onSettled: () => navigate("/login", { replace: true }) });
   const nombre = estudiante ? tituloBonito(estudiante.nombre.split(" ").slice(0, 2).join(" ")) : "";
@@ -47,8 +49,8 @@ export default function AppLayout() {
         </nav>
 
         <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-3">
-          {estudiante?.foto
-            ? <img src={estudiante.foto} alt="" className="size-9 rounded-full object-cover" />
+          {estudiante?.foto && !fotoRota
+            ? <img src={estudiante.foto} alt="" onError={() => setFotoRota(true)} className="size-9 rounded-full object-cover" />
             : <div className="grid size-9 place-items-center rounded-full bg-marca-100 text-sm font-bold text-marca-700">{iniciales}</div>}
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{nombre || "…"}</p>

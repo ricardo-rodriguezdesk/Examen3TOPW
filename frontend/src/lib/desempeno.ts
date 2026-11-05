@@ -23,6 +23,10 @@ export function tituloBonito(s: string): string {
   return s
     .toLowerCase()
     .split(/\s+/)
-    .map((p, i) => (i > 0 && menores.has(p) ? p : p.charAt(0).toUpperCase() + p.slice(1)))
+    .map((p, i) => {
+      if (/^(i|ii|iii|iv|v|vi)$/.test(p)) return p.toUpperCase(); // números romanos: "Autómatas II"
+      if (i > 0 && menores.has(p)) return p;
+      return p.charAt(0).toUpperCase() + p.slice(1);
+    })
     .join(" ");
 }

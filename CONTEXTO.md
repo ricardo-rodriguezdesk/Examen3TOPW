@@ -98,7 +98,7 @@ Base: `https://sii.celaya.tecnm.mx/api`
 | Backend: **modo mock** con alumna ficticia | A | ✅ Hecho |
 | Esqueleto del frontend (Vite, router, Tailwind, cliente API, hooks, layout) | A | ✅ Hecho y probado en navegador |
 | Login, rutas protegidas, layout y navegación (front) | A | ✅ Hecho y probado |
-| Dashboard y horario (front) | A | ⏳ Siguiente tarea de A |
+| Dashboard y horario (front) + componente `HorarioGrid` | A | ✅ Hecho y probado (mock y datos reales) |
 | **Calificaciones (front)** | **B** | ⏳ Pendiente |
 | **Kardex (front)** | **B** | ⏳ Pendiente |
 | Planificador — backend (BD, retícula, lógica, generador, admin API) | A | ⏳ Pendiente |
@@ -335,6 +335,15 @@ sii-planner/
   if (error) return <ErrorState mensaje={error.message} onReintentar={refetch} />;
   return (<><EncabezadoPagina titulo="Kardex" subtitulo="…" /> … </>);
   ```
+- **`HorarioGrid`** (`src/components/HorarioGrid.tsx`), para el Generador de B:
+  ```tsx
+  import HorarioGrid, { aBloqueGrid } from "../../components/HorarioGrid";
+  // GrupoOferta trae bloques con "07:00"; aBloqueGrid los convierte (colorIndice = índice del grupo)
+  const bloques = opcion.grupos.flatMap((g, i) => g.bloques.map((b) => aBloqueGrid({ ...b, clave: g.clave, nombre: g.nombre, grupo: g.grupo }, i)));
+  <HorarioGrid bloques={bloques} dias={["lunes","martes","miercoles","jueves","viernes"]} horaInicio={7} horaFin={21} marcarHoy={false} />
+  ```
+  También exporta `colorMateria(i)`, `NOMBRE_DIA`, `aHora(min)`, `aMinutos("07:30")` y `diaDeHoy()`.
+- `tituloBonito()` ya respeta números romanos ("Lenguajes y Autómatas II").
 - **Desarrollo:** Vite reenvía `/api/*` a `localhost:4000` (`vite.config.ts`), así que corre siempre el backend en otra terminal.
 - **Producción:** `frontend/vercel.json` reenvía `/api/*` a Render. A pone la URL real al desplegar.
 
@@ -417,7 +426,7 @@ Editor recomendado: VS Code con las extensiones *ESLint*, *Prettier* y *Tailwind
 ## 11. Tareas de A (para que B sepa qué esperar)
 
 1. ~~Esqueleto del frontend, login, rutas protegidas y layout~~ ✅
-2. Dashboard, horario y el componente `HorarioGrid` (B lo reutiliza en el Generador).
+2. ~~Dashboard, horario y el componente `HorarioGrid`~~ ✅
 3. Backend del Planificador: Prisma + Neon, modelos, carga de la retícula de ISC, cálculo de estados, generador y rutas admin.
 4. Despliegue: Render (backend), Vercel (frontend con rewrite), Neon (BD).
 
