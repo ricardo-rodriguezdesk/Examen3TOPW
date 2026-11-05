@@ -1,9 +1,11 @@
 import clsx from "clsx";
-import { AlertCircle, ArrowRight, Clock, Eye, EyeOff, GraduationCap, Loader2, Map, ShieldCheck } from "lucide-react";
+import { AlertCircle, Clock, Eye, EyeOff, Loader2, Map, ShieldCheck } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Navigate, useLocation, useSearchParams } from "react-router";
 import { ApiError } from "../api/cliente";
 import { useLogin, useSesion } from "../api/hooks";
+import FondoPantalla from "../components/FondoPantalla";
+import IconoApp from "../components/IconoApp";
 
 export default function Login() {
   const sesion = useSesion();
@@ -41,101 +43,71 @@ export default function Login() {
   const mensajeError = errorLocal ?? errorServidor;
 
   return (
-    <div className="grid min-h-full lg:grid-cols-2">
-      {/* Panel de marca */}
-      <aside className="relative hidden overflow-hidden bg-marca-800 p-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <div className="absolute -right-24 -top-24 size-96 rounded-full bg-marca-600/40 blur-3xl" />
-        <div className="absolute -bottom-32 -left-16 size-96 rounded-full bg-sky-400/20 blur-3xl" />
+    <div className="relative grid min-h-full place-items-center overflow-hidden px-4 py-10">
+      <FondoPantalla />
 
-        <div className="relative flex items-center gap-3">
-          <div className="grid size-11 place-items-center rounded-xl bg-white/10 ring-1 ring-white/20">
-            <GraduationCap className="size-6" />
-          </div>
-          <span className="text-xl font-bold tracking-tight">SII Planner</span>
+      <main className="relative w-full max-w-[380px]">
+        <div className="mb-7 flex flex-col items-center text-center">
+          <IconoApp tam="size-[72px]" />
+          <h1 className="mt-4 text-[28px] leading-tight font-bold text-slate-900">SII Planner</h1>
+          <p className="mt-1 text-[15px] text-slate-600">Tu trayectoria académica, clara y planeada.</p>
         </div>
 
-        <div className="relative max-w-md">
-          <h1 className="text-4xl font-extrabold leading-tight tracking-tight">
-            Tu trayectoria académica,<br />clara y planeada.
-          </h1>
-          <p className="mt-4 text-lg text-marca-100">
-            Consulta calificaciones, kardex y horario del SII, y planea qué materias cursar para egresar a tiempo.
-          </p>
-          <ul className="mt-8 space-y-3 text-marca-100">
-            <li className="flex items-center gap-3"><Map className="size-5 text-sky-300" /> Mapa de tu retícula con seriación</li>
-            <li className="flex items-center gap-3"><Clock className="size-5 text-sky-300" /> Generador de horarios sin choques</li>
-            <li className="flex items-center gap-3"><ShieldCheck className="size-5 text-sky-300" /> Tus credenciales solo viajan al SII</li>
-          </ul>
-        </div>
-
-        <p className="relative text-sm text-marca-200">Tecnológico Nacional de México · Campus Celaya</p>
-      </aside>
-
-      {/* Formulario */}
-      <main className="flex items-center justify-center p-6 sm:p-12">
-        <div className="w-full max-w-sm">
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <div className="grid size-10 place-items-center rounded-xl bg-marca-700 text-white"><GraduationCap className="size-5" /></div>
-            <span className="text-lg font-bold">SII Planner</span>
-          </div>
-
-          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Inicia sesión</h2>
-          <p className="mt-1 text-slate-500">Usa las mismas credenciales del SII.</p>
-
+        <form onSubmit={enviar} noValidate className="vidrio rounded-[28px] p-5">
           {expirada && !mensajeError && (
-            <div className="mt-6 flex gap-2 rounded-xl border border-medio/30 bg-medio-suave p-3 text-sm text-medio">
+            <div className="mb-4 flex gap-2 rounded-[14px] bg-medio-suave px-3 py-2.5 text-[14px] text-medio">
               <Clock className="mt-0.5 size-4 shrink-0" /> Tu sesión expiró. Vuelve a iniciar sesión.
             </div>
           )}
           {mensajeError && (
-            <div role="alert" className="mt-6 flex gap-2 rounded-xl border border-bajo/30 bg-bajo-suave p-3 text-sm text-bajo">
+            <div role="alert" className="mb-4 flex gap-2 rounded-[14px] bg-bajo-suave px-3 py-2.5 text-[14px] text-bajo">
               <AlertCircle className="mt-0.5 size-4 shrink-0" /> {mensajeError}
             </div>
           )}
 
-          <form onSubmit={enviar} noValidate className="mt-6 space-y-5">
-            <div>
-              <label htmlFor="usuario" className="mb-1.5 block text-sm font-semibold text-slate-700">Número de control</label>
+          {/* Campos agrupados, como en los formularios de iOS */}
+          <div className="overflow-hidden rounded-[14px] bg-superficie">
+            <label className={clsx("flex items-center gap-3 px-4", vacioUsuario && "bg-bajo-suave")}>
+              <span className="w-24 shrink-0 text-[15px] font-medium text-slate-900">Usuario</span>
               <input
-                id="usuario" autoComplete="username" autoFocus placeholder="20030123"
-                value={usuario} onChange={(e) => setUsuario(e.target.value)}
-                className={clsx(
-                  "w-full rounded-xl border bg-white px-4 py-3 outline-none transition focus:ring-4",
-                  vacioUsuario ? "border-bajo focus:ring-bajo/15" : "border-slate-300 focus:border-marca-500 focus:ring-marca-500/15",
-                )}
+                id="usuario" autoComplete="username" autoFocus placeholder="Número de control"
+                value={usuario} onChange={(e) => setUsuario(e.target.value)} aria-invalid={vacioUsuario}
+                className="min-w-0 flex-1 bg-transparent py-3.5 text-[16px] text-slate-900 outline-none placeholder:text-slate-400"
               />
-              <p className="mt-1 text-xs text-slate-400">También puedes escribir tu correo institucional.</p>
-            </div>
+            </label>
+            <div className="ml-4 h-px bg-separador" />
+            <label className={clsx("flex items-center gap-3 px-4", vacioPassword && "bg-bajo-suave")}>
+              <span className="w-24 shrink-0 text-[15px] font-medium text-slate-900">Contraseña</span>
+              <input
+                id="password" type={verPassword ? "text" : "password"} autoComplete="current-password" placeholder="Del SII"
+                value={password} onChange={(e) => setPassword(e.target.value)} aria-invalid={vacioPassword}
+                className="min-w-0 flex-1 bg-transparent py-3.5 text-[16px] text-slate-900 outline-none placeholder:text-slate-400"
+              />
+              <button
+                type="button" onClick={() => setVerPassword((v) => !v)}
+                aria-label={verPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                className="-mr-1 rounded-full p-1.5 text-slate-400 hover:text-slate-600"
+              >
+                {verPassword ? <EyeOff className="size-[18px]" /> : <Eye className="size-[18px]" />}
+              </button>
+            </label>
+          </div>
+          <p className="mt-2 px-1 text-[12px] text-slate-500">También puedes escribir tu correo institucional.</p>
 
-            <div>
-              <label htmlFor="password" className="mb-1.5 block text-sm font-semibold text-slate-700">Contraseña</label>
-              <div className="relative">
-                <input
-                  id="password" type={verPassword ? "text" : "password"} autoComplete="current-password"
-                  value={password} onChange={(e) => setPassword(e.target.value)}
-                  className={clsx(
-                    "w-full rounded-xl border bg-white px-4 py-3 pr-12 outline-none transition focus:ring-4",
-                    vacioPassword ? "border-bajo focus:ring-bajo/15" : "border-slate-300 focus:border-marca-500 focus:ring-marca-500/15",
-                  )}
-                />
-                <button
-                  type="button" onClick={() => setVerPassword((v) => !v)}
-                  aria-label={verPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                  className="absolute inset-y-0 right-0 grid w-12 place-items-center text-slate-400 hover:text-slate-600"
-                >
-                  {verPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
-                </button>
-              </div>
-            </div>
+          <button
+            type="submit" disabled={login.isPending}
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-marca-500 px-4 py-3.5 text-[17px] font-semibold text-white transition hover:bg-marca-800 active:scale-[0.98] disabled:opacity-70"
+          >
+            {login.isPending ? <><Loader2 className="size-5 animate-spin" /> Conectando con el SII…</> : "Iniciar sesión"}
+          </button>
+        </form>
 
-            <button
-              type="submit" disabled={login.isPending}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-marca-700 px-4 py-3 font-semibold text-white shadow-lg shadow-marca-700/20 transition hover:bg-marca-800 disabled:opacity-70"
-            >
-              {login.isPending ? <><Loader2 className="size-5 animate-spin" /> Conectando con el SII…</> : <>Entrar <ArrowRight className="size-5" /></>}
-            </button>
-          </form>
-        </div>
+        <ul className="mt-6 flex flex-col gap-2.5 px-2 text-[14px] text-slate-700">
+          <li className="flex items-center gap-3"><Map className="size-[18px] text-marca-500" /> Mapa de tu retícula con su seriación</li>
+          <li className="flex items-center gap-3"><Clock className="size-[18px] text-marca-500" /> Horarios sin choques para el próximo semestre</li>
+          <li className="flex items-center gap-3"><ShieldCheck className="size-[18px] text-marca-500" /> Tu contraseña solo viaja al SII</li>
+        </ul>
+        <p className="mt-8 text-center text-[12px] text-slate-500">Tecnológico Nacional de México · Campus Celaya</p>
       </main>
     </div>
   );

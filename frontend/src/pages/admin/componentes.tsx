@@ -20,12 +20,13 @@ export function Modal({ titulo, abierto, onCerrar, children, ancho = "max-w-2xl"
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-0 backdrop-blur-sm sm:items-center sm:p-6" onMouseDown={onCerrar}>
       <div
         role="dialog" aria-modal="true" aria-label={titulo}
-        className={clsx("flex max-h-[92vh] w-full flex-col rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl", ancho)}
+        className={clsx("flex max-h-[92vh] w-full flex-col rounded-t-[28px] bg-superficie shadow-2xl sm:rounded-[28px]", ancho)}
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="text-lg font-bold text-slate-900">{titulo}</h2>
-          <button onClick={onCerrar} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100" aria-label="Cerrar"><X className="size-5" /></button>
+        <div className="relative flex items-center justify-center px-6 pt-3 pb-3">
+          <span aria-hidden className="absolute top-2 left-1/2 h-1.5 w-10 -translate-x-1/2 rounded-full bg-slate-300 sm:hidden" />
+          <h2 className="mt-2 text-[17px] font-semibold text-slate-900 sm:mt-0">{titulo}</h2>
+          <button onClick={onCerrar} className="absolute top-3 right-4 grid size-8 place-items-center rounded-full bg-relleno text-slate-500" aria-label="Cerrar"><X className="size-4" /></button>
         </div>
         <div className="overflow-y-auto px-6 py-5">{children}</div>
       </div>
@@ -59,9 +60,9 @@ export function Boton({ variante = "primario", cargando, className, children, ..
       {...props}
       disabled={props.disabled || cargando}
       className={clsx(
-        "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
+        "inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-[15px] font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60",
         variante === "primario" && "bg-marca-700 text-white hover:bg-marca-800",
-        variante === "secundario" && "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+        variante === "secundario" && "bg-relleno text-marca-500 hover:bg-slate-100",
         variante === "peligro" && "bg-bajo text-white hover:bg-red-800",
         className,
       )}
@@ -72,8 +73,7 @@ export function Boton({ variante = "primario", cargando, className, children, ..
   );
 }
 
-export const claseInput =
-  "w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-marca-500 focus:ring-2 focus:ring-marca-100 disabled:bg-slate-50";
+export const claseInput = "campo";
 
 /** Etiqueta + control. El control recibe el id para que la etiqueta sea clicable. */
 export function Campo({ etiqueta, ayuda, className, children }: {
@@ -82,7 +82,7 @@ export function Campo({ etiqueta, ayuda, className, children }: {
   const id = useId();
   return (
     <div className={className}>
-      <label htmlFor={id} className="mb-1 block text-xs font-semibold tracking-wide text-slate-500 uppercase">{etiqueta}</label>
+      <label htmlFor={id} className="mb-1 block px-1 text-[13px] text-slate-500">{etiqueta}</label>
       {children(id)}
       {ayuda && <p className="mt-1 text-[11px] text-slate-400">{ayuda}</p>}
     </div>
@@ -91,7 +91,7 @@ export function Campo({ etiqueta, ayuda, className, children }: {
 
 export function MensajeError({ children }: { children: ReactNode }) {
   return (
-    <p role="alert" className="mt-4 flex items-start gap-2 rounded-xl border border-bajo/20 bg-bajo-suave px-3 py-2 text-sm text-bajo">
+    <p role="alert" className="mt-4 flex items-start gap-2 rounded-[14px] bg-bajo-suave px-3 py-2.5 text-[14px] text-bajo">
       <TriangleAlert className="mt-0.5 size-4 shrink-0" /> {children}
     </p>
   );

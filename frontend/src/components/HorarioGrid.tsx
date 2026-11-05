@@ -28,14 +28,14 @@ export const DIAS_ORDEN: DiaSemana[] = ["lunes", "martes", "miercoles", "jueves"
 
 /** Paleta: misma materia = mismo color en toda la app. */
 export const COLORES_MATERIA = [
-  { fondo: "bg-sky-50", borde: "border-sky-500", texto: "text-sky-900", punto: "bg-sky-500" },
-  { fondo: "bg-violet-50", borde: "border-violet-500", texto: "text-violet-900", punto: "bg-violet-500" },
-  { fondo: "bg-emerald-50", borde: "border-emerald-500", texto: "text-emerald-900", punto: "bg-emerald-500" },
-  { fondo: "bg-amber-50", borde: "border-amber-500", texto: "text-amber-900", punto: "bg-amber-500" },
-  { fondo: "bg-rose-50", borde: "border-rose-500", texto: "text-rose-900", punto: "bg-rose-500" },
-  { fondo: "bg-cyan-50", borde: "border-cyan-600", texto: "text-cyan-900", punto: "bg-cyan-600" },
-  { fondo: "bg-lime-50", borde: "border-lime-600", texto: "text-lime-900", punto: "bg-lime-600" },
-  { fondo: "bg-fuchsia-50", borde: "border-fuchsia-500", texto: "text-fuchsia-900", punto: "bg-fuchsia-500" },
+  { fondo: "bg-sky-50 dark:bg-sky-400/15", borde: "border-sky-500", texto: "text-sky-900 dark:text-sky-200", punto: "bg-sky-500" },
+  { fondo: "bg-violet-50 dark:bg-violet-400/15", borde: "border-violet-500", texto: "text-violet-900 dark:text-violet-200", punto: "bg-violet-500" },
+  { fondo: "bg-emerald-50 dark:bg-emerald-400/15", borde: "border-emerald-500", texto: "text-emerald-900 dark:text-emerald-200", punto: "bg-emerald-500" },
+  { fondo: "bg-amber-50 dark:bg-amber-400/15", borde: "border-amber-500", texto: "text-amber-900 dark:text-amber-200", punto: "bg-amber-500" },
+  { fondo: "bg-rose-50 dark:bg-rose-400/15", borde: "border-rose-500", texto: "text-rose-900 dark:text-rose-200", punto: "bg-rose-500" },
+  { fondo: "bg-cyan-50 dark:bg-cyan-400/15", borde: "border-cyan-600", texto: "text-cyan-900 dark:text-cyan-200", punto: "bg-cyan-600" },
+  { fondo: "bg-lime-50 dark:bg-lime-400/15", borde: "border-lime-600", texto: "text-lime-900 dark:text-lime-200", punto: "bg-lime-600" },
+  { fondo: "bg-fuchsia-50 dark:bg-fuchsia-400/15", borde: "border-fuchsia-500", texto: "text-fuchsia-900 dark:text-fuchsia-200", punto: "bg-fuchsia-500" },
 ];
 export const colorMateria = (i: number) => COLORES_MATERIA[((i % COLORES_MATERIA.length) + COLORES_MATERIA.length) % COLORES_MATERIA.length];
 
@@ -82,10 +82,10 @@ export default function HorarioGrid({ bloques, dias, horaInicio, horaFin, marcar
   const lineaVisible = hoy && minAhora >= horaInicio * 60 && minAhora <= horaFin * 60;
 
   return (
-    <div className={clsx("overflow-x-auto rounded-2xl border border-slate-200 bg-white", className)}>
+    <div className={clsx("overflow-x-auto rounded-[22px] bg-superficie", className)}>
       <div className="grid min-w-[640px]" style={{ gridTemplateColumns: `56px repeat(${dias.length}, minmax(0, 1fr))` }}>
         {/* Encabezados */}
-        <div className="sticky top-0 border-b border-slate-200 bg-white" />
+        <div className="sticky top-0 border-b border-slate-200 bg-superficie" />
         {dias.map((d) => (
           <div key={d} className={clsx("border-b border-l border-slate-200 py-3 text-center text-sm font-bold", d === hoy ? "bg-marca-50 text-marca-700" : "text-slate-600")}>
             {NOMBRE_DIA[d]}
@@ -117,7 +117,7 @@ export default function HorarioGrid({ bloques, dias, horaInicio, horaFin, marcar
                 <div
                   key={`${b.clave}-${b.inicioMin}`}
                   title={`${tituloBonito(b.nombre)} · ${aHora(b.inicioMin)}–${aHora(b.finMin)}${b.salon ? ` · ${b.salon}` : ""}`}
-                  className={clsx("absolute inset-x-1 overflow-hidden rounded-lg border-l-4 px-2 py-1.5 shadow-sm", c.fondo, c.borde, c.texto)}
+                  className={clsx("absolute inset-x-1 overflow-hidden rounded-[10px] border-l-[3px] px-2 py-1.5", c.fondo, c.borde, c.texto)}
                   style={{ top: top + 2, height: alto - 4 }}
                 >
                   <p className="line-clamp-2 text-xs font-bold leading-tight">{tituloBonito(b.nombre)}</p>

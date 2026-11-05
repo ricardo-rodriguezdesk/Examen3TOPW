@@ -3,10 +3,11 @@
 // (la cookie expiró a media sesión), regresa al login de admin.
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { BookMarked, CalendarRange, ExternalLink, LayoutList, LogOut, ShieldCheck, type LucideIcon } from "lucide-react";
+import { BookMarked, CalendarRange, ExternalLink, LayoutList, LogOut, type LucideIcon } from "lucide-react";
 import { useEffect } from "react";
 import { Link, Navigate, NavLink, Outlet, useNavigate } from "react-router";
 import { useLogoutAdmin, useSesionAdmin } from "../../api/admin";
+import IconoApp from "../../components/IconoApp";
 import { ApiError } from "../../api/cliente";
 
 const secciones: { a: string; texto: string; icono: LucideIcon; end: boolean }[] = [
@@ -39,16 +40,16 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-full">
-      <header className="sticky top-0 z-20 bg-marca-900 text-white">
+      <header className="borde-scroll sticky top-0 z-20 border-b border-separador">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
-          <span className="flex items-center gap-2 font-bold"><ShieldCheck className="size-5" /> SII Planner · Admin</span>
+          <span className="flex items-center gap-2.5 text-[15px] font-semibold"><IconoApp tam="size-7" /> Administración</span>
           <nav className="order-last flex w-full gap-1 overflow-x-auto sm:order-none sm:w-auto">
             {secciones.map(({ a, texto, icono: Icono, end }) => (
               <NavLink
                 key={a} to={a} end={end}
                 className={({ isActive }) => clsx(
-                  "flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold",
-                  isActive ? "bg-white/15 text-white" : "text-marca-200 hover:text-white",
+                  "flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[14px] font-semibold transition-colors",
+                  isActive ? "bg-relleno text-slate-900" : "text-slate-500 hover:text-slate-900",
                 )}
               >
                 <Icono className="size-4" /> {texto}
@@ -56,9 +57,9 @@ export default function AdminLayout() {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-3 text-sm">
-            <Link to="/" className="hidden items-center gap-1 text-marca-200 hover:text-white md:flex"><ExternalLink className="size-4" /> App del alumno</Link>
-            <span className="hidden text-marca-200 sm:inline">{sesion.data.usuario}</span>
-            <button onClick={salir} className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 font-semibold hover:bg-white/20">
+            <Link to="/" className="hidden items-center gap-1 text-marca-500 md:flex"><ExternalLink className="size-4" /> App del alumno</Link>
+            <span className="hidden text-slate-500 sm:inline">{sesion.data.usuario}</span>
+            <button onClick={salir} className="flex items-center gap-1.5 rounded-full bg-relleno px-3 py-1.5 font-semibold text-slate-900 hover:text-bajo">
               <LogOut className="size-4" /> Salir
             </button>
           </div>

@@ -1,27 +1,184 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
+/*
+  Sistema de diseño estilo iOS 27 (Persona B).
+  - Tipografía del sistema: en Mac/iPhone es SF Pro.
+  - Colores de sistema de Apple con modo oscuro automático (prefers-color-scheme).
+  - La escala "slate" y "marca" se reasignan a grises y azul de sistema: las páginas siguen usando
+    las mismas clases (text-slate-500, bg-marca-50…) y cambian solas en modo oscuro.
+  - Material Liquid Glass (.vidrio) SOLO para lo que flota: barras, barra lateral, hojas.
+*/
+
 @theme {
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Segoe UI", Roboto, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
 
-  /* Azul institucional como base */
-  --color-marca-50: #eef3fb;
-  --color-marca-100: #d6e2f4;
-  --color-marca-200: #adc4e8;
-  --color-marca-500: #2f5fa8;
-  --color-marca-600: #234a87;
-  --color-marca-700: #1b396a;
-  --color-marca-800: #142b51;
-  --color-marca-900: #0d1d38;
+  /* Superficies */
+  --color-fondo: #f2f2f7;      /* systemGroupedBackground */
+  --color-superficie: #ffffff; /* secondarySystemGroupedBackground */
+  --color-relleno: rgb(118 118 128 / 0.12); /* tertiarySystemFill: campos y controles */
+  --color-separador: rgb(60 60 67 / 0.18);
 
-  /* Semáforo de desempeño */
-  --color-alto: #15803d;
-  --color-alto-suave: #dcfce7;
-  --color-medio: #b45309;
-  --color-medio-suave: #fef3c7;
-  --color-bajo: #b91c1c;
-  --color-bajo-suave: #fee2e2;
+  /* Grises de sistema (antes slate) */
+  --color-slate-50: #f5f5f7;
+  --color-slate-100: #ececf0;
+  --color-slate-200: #e0e0e5;
+  --color-slate-300: #c7c7cc;
+  --color-slate-400: #aeaeb2;
+  --color-slate-500: #8a8a8e;
+  --color-slate-600: #6c6c70;
+  --color-slate-700: #48484a;
+  --color-slate-800: #2c2c2e;
+  --color-slate-900: #1d1d1f;
+
+  /* Azul de sistema (antes azul institucional) */
+  --color-marca-50: #e8f2ff;
+  --color-marca-100: #d4e7ff;
+  --color-marca-200: #a9cfff;
+  --color-marca-500: #007aff;
+  --color-marca-600: #0071eb;
+  --color-marca-700: #007aff;
+  --color-marca-800: #0062cc;
+  --color-marca-900: #0a3a82;
+
+  /* Semáforo: verde / naranja / rojo de iOS en su versión legible para texto */
+  --color-alto: #248a3d;
+  --color-alto-suave: #e3f6e8;
+  --color-medio: #c25e00;
+  --color-medio-suave: #fff1dc;
+  --color-bajo: #d70015;
+  --color-bajo-suave: #ffe5e7;
+
+  --radius-ios: 22px;
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Modo oscuro: mismos nombres, valores de sistema oscuros. Sin capa: le gana a @theme. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-fondo: #000000;
+    --color-superficie: #1c1c1e;
+    --color-relleno: rgb(118 118 128 / 0.24);
+    --color-separador: rgb(84 84 88 / 0.6);
+
+    --color-slate-50: #242426;
+    --color-slate-100: #2c2c2e;
+    --color-slate-200: #3a3a3c;
+    --color-slate-300: #48484a;
+    --color-slate-400: #7c7c80;
+    --color-slate-500: #98989f;
+    --color-slate-600: #aeaeb2;
+    --color-slate-700: #d1d1d6;
+    --color-slate-800: #e5e5ea;
+    --color-slate-900: #f5f5f7;
+
+    --color-marca-50: #0a2a4d;
+    --color-marca-100: #0d3563;
+    --color-marca-200: #2f6fbf;
+    --color-marca-500: #0a84ff;
+    --color-marca-600: #0a84ff;
+    --color-marca-700: #0a84ff;
+    --color-marca-800: #409cff;
+    --color-marca-900: #0b2f66;
+
+    --color-alto: #30d158;
+    --color-alto-suave: #0f2e18;
+    --color-medio: #ff9f0a;
+    --color-medio-suave: #33230a;
+    --color-bajo: #ff453a;
+    --color-bajo-suave: #3a1414;
+    color-scheme: dark;
+  }
 }
 
 html, body, #root { height: 100%; }
-body { @apply bg-slate-50 text-slate-800 antialiased; }
+body {
+  @apply bg-fondo text-slate-900 antialiased;
+  font-feature-settings: "kern";
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Íconos con trazo más fino, cercano a SF Symbols */
+.lucide { stroke-width: 1.85; }
+
+/* Foco visible y del color del sistema */
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--color-marca-500) 55%, transparent); outline-offset: 2px; }
+
+/* ---------- Liquid Glass ---------- */
+.vidrio {
+  background: color-mix(in srgb, var(--color-superficie) 62%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(185%);
+  backdrop-filter: blur(24px) saturate(185%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.75),   /* brillo superior */
+    0 0 0 0.5px rgb(0 0 0 / 0.12),            /* borde oscurecido (iOS 27) */
+    0 10px 30px -8px rgb(0 0 0 / 0.18);
+}
+@media (prefers-color-scheme: dark) {
+  .vidrio {
+    background: color-mix(in srgb, #2c2c2e 58%, transparent);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 0 0 0.5px rgb(0 0 0 / 0.6), 0 10px 30px -8px rgb(0 0 0 / 0.6);
+  }
+}
+/* Franja difuminada uniforme bajo barras flotantes (scroll edge effect) */
+.borde-scroll {
+  background: color-mix(in srgb, var(--color-fondo) 72%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+/* Accesibilidad: "Reducir transparencia" o navegadores sin backdrop-filter → material sólido */
+@media (prefers-reduced-transparency: reduce) {
+  .vidrio, .borde-scroll { background: var(--color-superficie); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .vidrio, .borde-scroll { background: var(--color-superficie); }
+}
+
+@layer components {
+/* ---------- Control segmentado (cápsula) ---------- */
+.segmentado { @apply inline-flex gap-0.5 rounded-full bg-relleno p-[3px]; }
+.segmento {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] font-semibold whitespace-nowrap text-slate-900 transition-[background,box-shadow] duration-200;
+}
+.segmento[aria-selected="true"], .segmento[aria-pressed="true"], .segmento[aria-current="page"], .segmento.activo {
+  @apply bg-superficie shadow-[0_3px_8px_rgb(0_0_0/0.12),0_0_0_0.5px_rgb(0_0_0/0.04)];
+}
+@media (prefers-color-scheme: dark) {
+  .segmento[aria-selected="true"], .segmento[aria-pressed="true"], .segmento[aria-current="page"], .segmento.activo { background: #636366; }
+}
+
+/* ---------- Campos estilo iOS ---------- */
+.campo {
+  @apply w-full rounded-[11px] border-0 bg-relleno px-3 py-2 text-[15px] text-slate-900 placeholder:text-slate-500 outline-none transition;
+}
+.campo:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-marca-500) 35%, transparent); }
+}
+
+/* ---------- Gráficas (Recharts) y mapa (React Flow) siguen el tema ---------- */
+.recharts-cartesian-grid line { stroke: var(--color-separador); }
+.recharts-cartesian-axis-tick-value { fill: var(--color-slate-500); }
+.react-flow {
+  --xy-background-color: transparent; --xy-background-pattern-color: var(--color-slate-300);
+  --xy-controls-button-background-color: var(--color-superficie); --xy-controls-button-background-color-hover: var(--color-slate-100);
+  --xy-controls-button-color: var(--color-slate-900); --xy-controls-button-color-hover: var(--color-slate-900);
+  --xy-controls-button-border-color: var(--color-separador);
+}
+.react-flow__controls { @apply overflow-hidden rounded-xl shadow-md; }
+.react-flow__attribution { background: transparent !important; }
+.react-flow__attribution a { color: var(--color-slate-400) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* Los campos usan su propio estilo de foco (anillo suave), no el contorno genérico */
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }
+
+/* Gráfica del Kardex: puntos con borde del color de la superficie y línea mínima en rojo del sistema */
+.grafica-promedio .recharts-dot, .grafica-promedio .recharts-active-dot circle { stroke: var(--color-superficie); }
+.grafica-promedio .linea-minima line, .linea-minima { stroke: var(--color-bajo); }
+.grafica-promedio .etiqueta-minima, .grafica-promedio .recharts-reference-line text { fill: var(--color-bajo); }
+
+/* Morado de sistema para los co-requisitos del mapa */
+:root { --color-morado: #af52de; --color-morado-suave: #c991e8; }
+@media (prefers-color-scheme: dark) { :root { --color-morado: #bf5af2; --color-morado-suave: #8e5aa8; } }
