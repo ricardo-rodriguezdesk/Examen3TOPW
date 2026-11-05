@@ -8,7 +8,7 @@
 
 import { config } from "../config.js";
 import { ESQUEMA } from "./esquema.js";
-import { sembrar } from "./semilla.js";
+import { completarEspecialidades, sembrar } from "./semilla.js";
 
 export interface Db {
   query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T[]>;
@@ -61,6 +61,10 @@ export function db(): Promise<Db> {
       if (n === 0) {
         await sembrar(d);
         console.log("BD: retícula oficial cargada");
+      } else {
+        // BD con datos (p. ej. Neon): agrega especialidades nuevas de la semilla sin tocar lo existente
+        const agregadas = await completarEspecialidades(d);
+        if (agregadas.length) console.log(`BD: especialidades agregadas: ${agregadas.join(", ")}`);
       }
       console.log(`BD lista (${config.databaseUrl ? "PostgreSQL" : "PGlite " + config.pgliteDir})`);
       return d;
