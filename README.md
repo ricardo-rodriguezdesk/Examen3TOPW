@@ -2,7 +2,8 @@
 
 **Tu trayectoria académica, clara y planeada.** Aplicación web para alumnos del **TecNM Campus Celaya** que consume la
 API REST del **SII** para mostrar calificaciones, kardex y horario, y agrega un **Planificador de trayectoria académica**
-con backend propio: mapa de la retícula con seriación, estimación de egreso, alertas y un generador de horarios sin choques.
+con backend propio: mapa de la retícula con seriación, estimación de egreso, alertas, un generador de horarios sin choques
+y un panel para la coordinación que muestra la **demanda de cada grupo** y recomienda qué grupos abrir o redistribuir.
 
 | | |
 |---|---|
@@ -61,37 +62,47 @@ con tres especialidades: *Inteligencia de Datos y Plataformas en la Nube*, *Gest
 |---|---|
 | **Avance** | % de créditos (aprobados, cursando, por cursar), **egreso estimado**, materias por estado, alertas (repeticiones, curso especial, límite de semestres, servicio social, residencia) y materias que puede inscribir. |
 | **Mapa de retícula** | Grafo interactivo por semestre: aprobada, cursando, disponible, bloqueada o reprobada. Flechas de **pre-requisito** y líneas punteadas de **co-requisito**. Al elegir una materia se ilumina su cadena de seriación y se explica por qué está bloqueada (seriación o % de créditos). |
-| **Generador de horarios** | El alumno elige materias y preferencias (turno, evitar sábado, máximo de créditos) y recibe hasta 10 combinaciones de grupos **sin choques**, ordenadas por puntuación (menos horas libres, menos días). |
+| **Generador de horarios** | El alumno elige materias y preferencias (turno, evitar sábado, máximo de créditos) y recibe hasta 10 combinaciones de grupos **sin choques**, ordenadas por puntuación (menos horas libres, menos días). Respeta los co-requisitos y, si no cabe todo, sugiere qué materia quitar. |
+| **Mi horario** | El alumno **guarda** la opción que planea cursar. Se guarda de forma **anónima** (un hash, no el número de control) y cuenta en la demanda que ve la coordinación. |
 | **Panel de administración** | Backend propio con sesión independiente del SII: alta, edición y baja de **planes**, **especialidades**, **materias con su seriación** y **oferta de grupos** con su horario. Lo que se captura aquí es lo que ve el alumno. |
+| **Demanda de grupos** (admin) | Cuántos alumnos planean cada grupo, ocupación contra el cupo y una **recomendación** por materia: abrir otro grupo, redistribuir, demanda baja o sin demanda. Convierte el panel en una herramienta de decisión para la coordinación, sin exponer quién eligió qué. Incluye 150 alumnos simulados para la demostración. |
 
 La especialidad del alumno **se detecta sola** con las claves de su kardex y se puede cambiar desde un selector.
+Toda la interfaz sigue un diseño **estilo iOS 27** (Liquid Glass en barras flotantes, fuente del sistema) con **modo oscuro automático**.
 La propuesta escrita del Planificador está en [`docs/propuesta-planificador.md`](docs/propuesta-planificador.md).
 
 ---
 
 ## Capturas
 
-| Login | Calificaciones |
+| Login | Inicio |
 |---|---|
-| ![Login](docs/capturas/01-login.png) | ![Calificaciones](docs/capturas/03-calificaciones.png) |
-| **Historial con filtro en tiempo real** | **Kardex** |
-| ![Historial](docs/capturas/04-historial.png) | ![Kardex](docs/capturas/05-kardex.png) |
-| **Horario** | **Planificador · Avance** |
-| ![Horario](docs/capturas/06-horario.png) | ![Avance](docs/capturas/07-avance.png) |
-| **Planificador · Mapa de retícula** | **Mapa · detalle de una materia bloqueada** |
-| ![Mapa](docs/capturas/08-mapa.png) | ![Detalle](docs/capturas/09-mapa-detalle.png) |
-| **Planificador · Generador de horarios** | **Admin · Materias** |
-| ![Generador](docs/capturas/10-generador.png) | ![Admin materias](docs/capturas/11-admin-materias.png) |
-| **Admin · Materia con su seriación** | **Admin · Grupo con vista previa del horario** |
-| ![Admin materia](docs/capturas/12-admin-materia-form.png) | ![Admin grupo](docs/capturas/13-admin-grupo-form.png) |
+| ![Login](docs/capturas/01-login.png) | ![Inicio](docs/capturas/02-inicio.png) |
+| **Calificaciones · periodo actual** | **Historial con filtro en tiempo real** |
+| ![Calificaciones](docs/capturas/03-calificaciones.png) | ![Historial](docs/capturas/04-historial.png) |
+| **Kardex** | **Horario** |
+| ![Kardex](docs/capturas/05-kardex.png) | ![Horario](docs/capturas/06-horario.png) |
+| **Planificador · Avance** | **Planificador · Mapa de retícula** |
+| ![Avance](docs/capturas/07-avance.png) | ![Mapa](docs/capturas/08-mapa.png) |
+| **Mapa · materia bloqueada por su co-requisito** | **Planificador · Generador de horarios** |
+| ![Detalle](docs/capturas/09-mapa-detalle.png) | ![Generador](docs/capturas/10-generador.png) |
+| **Mi horario guardado (anónimo)** | **Admin · Demanda de grupos** |
+| ![Mi horario](docs/capturas/11-mi-horario.png) | ![Demanda](docs/capturas/12-admin-demanda.png) |
+| **Admin · Materias** | **Admin · Materia con su seriación** |
+| ![Admin materias](docs/capturas/13-admin-materias.png) | ![Admin materia](docs/capturas/14-admin-materia-form.png) |
+| **Admin · Grupo con vista previa del horario** | **Modo oscuro · Inicio** |
+| ![Admin grupo](docs/capturas/15-admin-grupo-form.png) | ![Inicio oscuro](docs/capturas/16-inicio-oscuro.png) |
+| **Modo oscuro · Mapa** | |
+| ![Mapa oscuro](docs/capturas/17-mapa-oscuro.png) | |
 
 **En el celular**
 
 | Calificaciones | Horario | Avance |
 |---|---|---|
-| <img src="docs/capturas/14-movil-calificaciones.png" width="240"> | <img src="docs/capturas/15-movil-horario.png" width="240"> | <img src="docs/capturas/16-movil-avance.png" width="240"> |
+| <img src="docs/capturas/18-movil-calificaciones.png" width="240"> | <img src="docs/capturas/19-movil-horario.png" width="240"> | <img src="docs/capturas/20-movil-avance.png" width="240"> |
 
-> Las capturas usan la **alumna ficticia** del modo mock; no contienen datos reales.
+> Las capturas usan la **alumna ficticia** del modo mock y alumnos simulados; no contienen datos reales.
+> En Mac y iPhone la app usa la fuente del sistema (SF Pro); estas capturas se tomaron en Linux con Inter, que es muy parecida.
 
 ---
 
@@ -137,7 +148,7 @@ sequenceDiagram
 | Capa | Tecnología | Por qué |
 |---|---|---|
 | Frontend | **React 19 + Vite + TypeScript** | SPA rápida con recarga instantánea (HMR) en desarrollo y build optimizado. TypeScript comparte el **contrato de datos** con el backend y atrapa errores antes de ejecutar. |
-| Estilos | **Tailwind CSS 4** | Diseño consistente con tokens propios (azul institucional y semáforo de desempeño) sin escribir CSS a mano; responsivo desde el celular. |
+| Estilos | **Tailwind CSS 4** + sistema de diseño **estilo iOS 27** | Tokens propios (colores de sistema de Apple, semáforo de desempeño, material Liquid Glass) con **modo oscuro automático**; la app se siente nativa en iPhone y Mac y es responsiva desde el celular. |
 | Datos en el front | **TanStack Query** | Caché, estados de carga y error, y reintentos sin código repetido; cada pantalla usa un hook (`useKardex()`, `useAvance()`…). |
 | Rutas | **React Router** | Rutas independientes para cada sección y rutas protegidas para alumno y administrador. |
 | Gráficas | **Recharts** | Gráfica del promedio por semestre en el Kardex, declarativa y fácil de integrar con React. |
@@ -228,7 +239,7 @@ Comprobaciones: `/api/salud` (vida), `/api/salud/sii` (¿Render alcanza al SII?)
 │   └── src/
 │       ├── routes/          auth, academico, planificador, admin
 │       ├── sii/             cliente del SII, normalizadores, tipos y modo mock
-│       ├── planificador/    lógica pura: estados, egreso, alertas, generador de horarios
+│       ├── planificador/    lógica pura: estados, egreso, alertas, generador de horarios y demanda de grupos
 │       ├── db/              conexión (Neon / PGlite), esquema y retícula oficial
 │       └── middleware/      sesión del alumno y del administrador
 ├── frontend/                SPA (React + Vite + TS)

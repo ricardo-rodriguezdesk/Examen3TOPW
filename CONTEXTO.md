@@ -6,7 +6,7 @@
 > para que lo acuerde con A y actualicen este archivo **antes** de cambiar el código.
 > Ambos integrantes usan **macOS** (MacBook).
 
-Última actualización: 5 nov 2026, 16:00 — por A (rama `a/demanda-grupos`) · **Repo:** https://github.com/ricardo-rodriguezdesk/Examen3TOPW · **App:** https://examen3-topw.vercel.app · **API:** https://sii-planner-api.onrender.com
+Última actualización: 5 nov 2026, 17:00 — por B (rama `b/demanda`) · **Repo:** https://github.com/ricardo-rodriguezdesk/Examen3TOPW · **App:** https://examen3-topw.vercel.app · **API:** https://sii-planner-api.onrender.com
 
 ---
 
@@ -43,6 +43,15 @@ decisión para la coordinación** (qué grupos abrir o ampliar). Usa este argume
      (lleno rojo · alto naranja · normal verde · bajo gris), `planeados/cupo` y docente.
    - (Opcional) Gráfica pequeña de `porEspecialidad`.
 3. Agregar estas pantallas al README (capturas) y a la propuesta escrita.
+
+**Estado (B, rama `b/demanda`):** ✅ 1, 2 y 3 hechos. Generador con "Guardar este horario" y tarjeta "Mi horario" (Cambiar
+recarga sus materias; Quitar pide confirmación). Página `/admin/demanda` con resumen, interruptor de simulados, Regenerar/Borrar
+con confirmación, filtros (necesitan atención / poca demanda / todas), barras de ocupación y alumnos por especialidad.
+README con 20 capturas nuevas (diseño iOS, claro/oscuro, celular) y `docs/propuesta-planificador.md` escrita.
+
+**⚠️ Ojo A — `hashAlumno` usa `ADMIN_SECRET`:** si se rota ese secreto (recomendado, porque se compartió en una captura),
+los horarios ya guardados quedan huérfanos: siguen contando en la demanda pero el alumno ya no los ve ni puede cambiarlos.
+Opciones: rotarlo **ya**, antes de que haya horarios reales, o usar un secreto aparte para el hash (`ALUMNO_HASH_SECRET`).
 
 ---
 
@@ -169,9 +178,9 @@ Base: `https://sii.celaya.tecnm.mx/api`
 | **Rediseño estilo iOS 27 (toda la app, claro y oscuro)** | **B** | ✅ En `main` (PR #6) y en producción |
 | **Generador: co-requisitos, nombres en mensajes y "qué materia quitar"** | **B** (+ revisión de A en `logica.ts`) | ✅ En `main` (PR #7), revisado por A |
 | **Demanda de grupos — backend** (guardar horario, demanda por grupo, recomendaciones, simulados) | A | ✅ Rama `a/demanda-grupos` (PR de A) |
-| **Demanda de grupos — frontend** (guardar en Generador, página Admin → Demanda) | **B** | ⏳ Pendiente (ver §0A) |
-| **README** | **B** | ✅ En `main` (PR #5) — **las capturas muestran el diseño viejo: hay que retomarlas** |
-| **Propuesta escrita del Planificador** (`docs/propuesta-planificador.md`, el README ya la enlaza) | **B** | ⏳ Pendiente |
+| **Demanda de grupos — frontend** (guardar en Generador, página Admin → Demanda) | **B** | 🔄 PR abierto (rama `b/demanda`) |
+| **README** | **B** | ✅ En `main` (PR #5); capturas nuevas (diseño iOS + demanda) en `b/demanda` |
+| **Propuesta escrita del Planificador** (`docs/propuesta-planificador.md`) | **B** | ✅ Escrita (rama `b/demanda`) |
 | Retícula oficial de ISC con seriación | A | ✅ Cargada (especialidades IDP, GTE y ADG — esta última por B, PR #4) |
 
 > Cuando terminen algo, **actualicen esta tabla** en el mismo commit.
@@ -433,7 +442,7 @@ sii-planner/
 ## 8.1 Cómo está armado el frontend (ya existe — úsalo así)
 
 - **Rutas** (`src/main.tsx`): `/login` · `/` (Inicio) · `/calificaciones` · `/kardex` · `/horario` ·
-  `/planificador` (Avance) · `/planificador/mapa` · `/planificador/generador` · `/admin/login` · `/admin` (Materias) · `/admin/oferta` · `/admin/planes`.
+  `/planificador` (Avance) · `/planificador/mapa` · `/planificador/generador` · `/admin/login` · `/admin` (Materias) · `/admin/oferta` · `/admin/demanda` · `/admin/planes`.
   Las del alumno están protegidas por `RutaProtegida`; las de admin, por `AdminLayout` con la sesión de admin (y `ADMIN_REQUERIDO` regresa a `/admin/login`).
 - **Las páginas de B ya existen** como "Pendiente": solo hay que reemplazar su contenido. No toques `main.tsx` salvo para agregar rutas nuevas.
 - **Datos:** usa solo los hooks de `src/api/hooks.ts`: `useEstudiante()`, `useCalificaciones()`, `useKardex()`, `useHorario()`.
@@ -514,9 +523,9 @@ Editor recomendado: VS Code con las extensiones *ESLint*, *Prettier* y *Tailwind
 ### Estado de B (5 nov)
 B1, B2, B3 (incluido el panel admin) y el README ya están en `main`. Lo que queda de B:
 1. ~~`b/generador-mejoras`~~ ✅ en `main` (PR #7).
-1b. **Demanda de grupos — frontend** (§0A): guardar horario en el Generador y página Admin → Demanda.
-2. Propuesta escrita del Planificador en `docs/propuesta-planificador.md`.
-3. Volver a tomar las capturas del README con el diseño nuevo (claro y oscuro, escritorio y celular).
+1b. ~~Demanda de grupos — frontend~~ → PR `b/demanda`.
+2. ~~Propuesta escrita~~ ✅ `docs/propuesta-planificador.md`.
+3. ~~Capturas del README con el diseño nuevo~~ ✅.
 
 ### Para arrancar (el esqueleto del frontend ya está)
 1. Clonar, levantar el backend en modo mock y probar las rutas en el navegador

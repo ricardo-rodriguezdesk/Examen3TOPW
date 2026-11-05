@@ -34,19 +34,20 @@ export function Modal({ titulo, abierto, onCerrar, children, ancho = "max-w-2xl"
   );
 }
 
-export function Confirmar({ abierto, titulo, mensaje, onCancelar, onConfirmar, cargando, error }: {
+export function Confirmar({ abierto, titulo, mensaje, onCancelar, onConfirmar, cargando, error, textoConfirmar = "Eliminar", peligro = true }: {
   abierto: boolean; titulo: string; mensaje: ReactNode; onCancelar: () => void; onConfirmar: () => void; cargando?: boolean; error?: string | null;
+  textoConfirmar?: string; peligro?: boolean;
 }) {
   return (
     <Modal titulo={titulo} abierto={abierto} onCerrar={onCancelar} ancho="max-w-md">
       <div className="flex gap-3">
-        <div className="grid size-10 shrink-0 place-items-center rounded-full bg-bajo-suave text-bajo"><TriangleAlert className="size-5" /></div>
-        <div className="text-sm text-slate-600">{mensaje}</div>
+        <div className={clsx("grid size-10 shrink-0 place-items-center rounded-full", peligro ? "bg-bajo-suave text-bajo" : "bg-marca-50 text-marca-500")}><TriangleAlert className="size-5" /></div>
+        <div className="text-[15px] text-slate-600">{mensaje}</div>
       </div>
       {error && <MensajeError>{error}</MensajeError>}
       <div className="mt-6 flex justify-end gap-2">
         <Boton variante="secundario" onClick={onCancelar}>Cancelar</Boton>
-        <Boton variante="peligro" onClick={onConfirmar} cargando={cargando}>Eliminar</Boton>
+        <Boton variante={peligro ? "peligro" : "primario"} onClick={onConfirmar} cargando={cargando}>{textoConfirmar}</Boton>
       </div>
     </Modal>
   );

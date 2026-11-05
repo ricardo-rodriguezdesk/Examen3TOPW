@@ -3,15 +3,15 @@
 // Cada opción se dibuja con <HorarioGrid> (componente de A).
 
 import clsx from "clsx";
-import { CalendarSearch, Check, Clock, Coffee, Gauge, Layers, Link2, Sparkles, TriangleAlert, User } from "lucide-react";
+import { BookmarkCheck, CalendarSearch, Check, CircleCheck, Clock, Coffee, Gauge, Layers, Link2, Lock, Pencil, Sparkles, Trash2, TriangleAlert, User } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useAvance, useGenerarHorarios, useOferta } from "../../api/planificador";
+import { useAvance, useBorrarMiHorario, useGenerarHorarios, useGuardarMiHorario, useMiHorario, useOferta } from "../../api/planificador";
 import HorarioGrid, { aBloqueGrid, colorMateria, DIAS_ORDEN } from "../../components/HorarioGrid";
 import { Badge, Card, EncabezadoPagina, ErrorState, Skeleton } from "../../components/ui";
 import { tituloBonito } from "../../lib/desempeno";
 import type { DiaSemana } from "../../types/api";
 import { useEspecialidad } from "../../lib/planificador";
-import type { OpcionesHorario, OpcionHorario, Preferencias as PreferenciasHorario } from "../../types/api";
+import type { GrupoOferta, MiHorario, OpcionesHorario, OpcionHorario, Preferencias as PreferenciasHorario } from "../../types/api";
 
 type Turno = "cualquiera" | "matutino" | "vespertino";
 
@@ -20,6 +20,8 @@ export default function Generador() {
   const avance = useAvance(especialidad);
   const oferta = useOferta(especialidad);
   const generar = useGenerarHorarios(especialidad);
+  const miHorario = useMiHorario();
+  const guardar = useGuardarMiHorario();
 
   const [elegidas, setElegidas] = useState<string[]>([]);
   const [turno, setTurno] = useState<Turno>("cualquiera");
@@ -67,6 +69,18 @@ export default function Generador() {
     <div>
       <EncabezadoPagina titulo="Generador de horarios" subtitulo={`Oferta de ${oferta.data.periodoTexto}: elige tus materias y te proponemos horarios sin choques`} />
 
+      {miHorario.data?.guardado && (
+        <MiHorarioGuardado
+          mio={miHorario.data}
+          onCambiar={() => {
+            // Vuelve a cargar las materias guardadas para armar otra opción (al guardar, se reemplaza)
+            const claves = miHorario.data!.guardado!.grupos.map((g) => g.clave).filter((c) => gruposPorClave.has(c));
+            setElegidas(claves);
+            document.getElementById("armar-horario")?.scrollIntoView({ behavior: "smooth" });
+          }}
+        />
+      )}
+
       {oferta.data.grupos.length === 0 ? (
         <Card className="flex flex-col items-center gap-3 py-16 text-center">
           <CalendarSearch className="size-10 text-slate-300" />
@@ -76,7 +90,7 @@ export default function Generador() {
         </Card>
       ) : (
 
-      <div className="grid items-start gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
+      <div id="armar-horario" className="grid scroll-mt-6 items-start gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
         {/* ---------- Configuración ---------- */}
         <div className="flex flex-col gap-4 xl:sticky xl:top-6">
           <Card className="p-0!">
@@ -178,6 +192,12 @@ export default function Generador() {
               opcionesSinTurno={generar.data.opcionesSinTurno ?? 0}
               onQuitar={quitarYGenerar}
               onCualquierTurno={cualquierTurno}
+              guardadoIds={new Set(miHorario.data?.guardado?.grupos.map((g) => g.id) ?? [])}
+              periodoTexto={miHorario.data?.periodoTexto ?? oferta.data.periodoTexto}
+              onGuardar={(op) => guardar.mutate(op.grupos.map((g) => g.id))}
+              guardando={guardar.isPending}
+              errorGuardar={guardar.error?.message ?? null}
+              onCambiarOpcion={() => guardar.reset()}
               activa={Math.min(opcionActiva, Math.max(0, generar.data.opciones.length - 1))}
               onActiva={setOpcionActiva}
               orden={elegidas}
@@ -192,7 +212,10 @@ export default function Generador() {
 
 // ---------------- Resultados ----------------
 
-function Resultados({ opciones, advertencias, sugerencias, opcionesSinTurno, onQuitar, onCualquierTurno, activa, onActiva, orden }: {
+function Resultados({ opciones, advertencias, sugerencias, opcionesSinTurno, onQuitar, onCualquierTurno, activa, onActiva, orden,
+  guardadoIds, periodoTexto, onGuardar, guardando, errorGuardar, onCambiarOpcion }: {
+  guardadoIds: Set<number>; periodoTexto: string; onGuardar: (op: OpcionHorario) => void; guardando: boolean;
+  errorGuardar: string | null; onCambiarOpcion: () => void;
   opciones: OpcionHorario[]; advertencias: string[]; activa: number; onActiva: (i: number) => void; orden: string[];
   sugerencias: NonNullable<OpcionesHorario["sugerencias"]>; opcionesSinTurno: number;
   onQuitar: (clave: string) => void; onCualquierTurno: () => void;
@@ -255,7 +278,7 @@ function Resultados({ opciones, advertencias, sugerencias, opcionesSinTurno, onQ
       {/* Pestañas de opciones */}
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
         {opciones.map((op, i) => (
-          <button key={i} onClick={() => onActiva(i)} aria-pressed={i === activa}
+          <button key={i} onClick={() => { onActiva(i); onCambiarOpcion(); }} aria-pressed={i === activa}
             className={clsx(
               "flex shrink-0 flex-col items-start rounded-[16px] px-4 py-2 text-left transition",
               i === activa ? "bg-marca-500 [&_span]:text-white" : "bg-superficie hover:bg-slate-50",
@@ -267,6 +290,14 @@ function Resultados({ opciones, advertencias, sugerencias, opcionesSinTurno, onQ
           </button>
         ))}
       </div>
+
+      {/* Guardar: cuenta en la demanda que ve la coordinación */}
+      <BarraGuardar
+        guardada={o.grupos.length === guardadoIds.size && o.grupos.every((g) => guardadoIds.has(g.id))}
+        hayOtroGuardado={guardadoIds.size > 0}
+        periodoTexto={periodoTexto} guardando={guardando} error={errorGuardar}
+        onGuardar={() => onGuardar(o)}
+      />
 
       {/* Métricas */}
       <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -294,6 +325,84 @@ function Resultados({ opciones, advertencias, sugerencias, opcionesSinTurno, onQ
         </ul>
       </Card>
     </div>
+  );
+}
+
+// ---------------- Guardar mi horario ----------------
+
+const PRIVACIDAD = "Se guarda de forma anónima: la coordinación solo ve cuántos alumnos planean cada grupo.";
+
+function BarraGuardar({ guardada, hayOtroGuardado, periodoTexto, guardando, error, onGuardar }: {
+  guardada: boolean; hayOtroGuardado: boolean; periodoTexto: string; guardando: boolean; error: string | null; onGuardar: () => void;
+}) {
+  return (
+    <div className="mb-4 rounded-[18px] bg-superficie p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <p className="flex flex-1 items-start gap-2 text-[13px] text-slate-500">
+          <Lock className="mt-0.5 size-3.5 shrink-0" /> {PRIVACIDAD}
+        </p>
+        {guardada ? (
+          <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-alto-suave px-4 py-2 text-[15px] font-semibold text-alto">
+            <CircleCheck className="size-4" /> Guardado para {periodoTexto}
+          </span>
+        ) : (
+          <button
+            onClick={onGuardar} disabled={guardando}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-marca-700 px-5 py-2.5 text-[15px] font-semibold text-white transition hover:bg-marca-800 active:scale-[0.98] disabled:opacity-60"
+          >
+            <BookmarkCheck className="size-4" /> {guardando ? "Guardando…" : hayOtroGuardado ? "Guardar este (reemplaza el anterior)" : "Guardar este horario"}
+          </button>
+        )}
+      </div>
+      {error && (
+        <p role="alert" className="mt-3 flex items-start gap-2 rounded-[12px] bg-bajo-suave px-3 py-2 text-[14px] text-bajo">
+          <TriangleAlert className="mt-0.5 size-4 shrink-0" /> {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function MiHorarioGuardado({ mio, onCambiar }: { mio: MiHorario; onCambiar: () => void }) {
+  const borrar = useBorrarMiHorario();
+  const [confirmar, setConfirmar] = useState(false);
+  const g = mio.guardado!;
+  const bloques = g.grupos.flatMap((x: GrupoOferta, i) => x.bloques.map((b) => aBloqueGrid({ ...b, clave: x.clave, nombre: x.nombre, grupo: x.grupo }, i)));
+  const usados = new Set<DiaSemana>(bloques.map((b) => b.dia));
+  const dias = DIAS_ORDEN.filter((d) => d !== "sabado" || usados.has(d));
+  const horaInicio = bloques.length ? Math.floor(Math.min(...bloques.map((b) => b.inicioMin)) / 60) : 7;
+  const horaFin = bloques.length ? Math.ceil(Math.max(...bloques.map((b) => b.finMin)) / 60) : 14;
+  const fecha = new Date(g.actualizado).toLocaleString("es-MX", { day: "numeric", month: "long", hour: "numeric", minute: "2-digit" });
+
+  return (
+    <Card className="mb-6 flex flex-col gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="flex items-center gap-2 text-[20px] font-bold text-slate-900">
+            <BookmarkCheck className="size-5 text-alto" /> Mi horario para {mio.periodoTexto}
+          </h2>
+          <p className="mt-0.5 text-[13px] text-slate-500">{g.grupos.length} materias · {g.creditos} créditos · Guardado el {fecha}</p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={onCambiar} className="inline-flex items-center gap-1.5 rounded-full bg-relleno px-4 py-2 text-[15px] font-semibold text-marca-500 hover:bg-slate-100">
+            <Pencil className="size-4" /> Cambiar
+          </button>
+          {confirmar ? (
+            <button onClick={() => borrar.mutate(undefined, { onSettled: () => setConfirmar(false) })} disabled={borrar.isPending}
+              className="inline-flex items-center gap-1.5 rounded-full bg-bajo px-4 py-2 text-[15px] font-semibold text-white">
+              <Trash2 className="size-4" /> {borrar.isPending ? "Quitando…" : "¿Quitar? Sí"}
+            </button>
+          ) : (
+            <button onClick={() => setConfirmar(true)} className="inline-flex items-center gap-1.5 rounded-full bg-relleno px-4 py-2 text-[15px] font-semibold text-bajo hover:bg-slate-100">
+              <Trash2 className="size-4" /> Quitar
+            </button>
+          )}
+        </div>
+      </div>
+      <HorarioGrid bloques={bloques} dias={dias} horaInicio={horaInicio} horaFin={Math.max(horaFin, horaInicio + 1)} marcarHoy={false} />
+      <p className="flex items-start gap-2 text-[13px] text-slate-500"><Lock className="mt-0.5 size-3.5 shrink-0" /> {PRIVACIDAD}</p>
+      {borrar.error && <p role="alert" className="text-[14px] text-bajo">{borrar.error.message}</p>}
+    </Card>
   );
 }
 

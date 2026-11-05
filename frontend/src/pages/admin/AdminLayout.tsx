@@ -3,7 +3,7 @@
 // (la cookie expiró a media sesión), regresa al login de admin.
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { BookMarked, CalendarRange, ExternalLink, LayoutList, LogOut, type LucideIcon } from "lucide-react";
+import { BarChart3, BookMarked, CalendarRange, ExternalLink, LayoutList, LogOut, type LucideIcon } from "lucide-react";
 import { useEffect } from "react";
 import { Link, Navigate, NavLink, Outlet, useNavigate } from "react-router";
 import { useLogoutAdmin, useSesionAdmin } from "../../api/admin";
@@ -13,6 +13,7 @@ import { ApiError } from "../../api/cliente";
 const secciones: { a: string; texto: string; icono: LucideIcon; end: boolean }[] = [
   { a: "/admin", texto: "Materias", icono: LayoutList, end: true },
   { a: "/admin/oferta", texto: "Oferta de grupos", icono: CalendarRange, end: false },
+  { a: "/admin/demanda", texto: "Demanda", icono: BarChart3, end: false },
   { a: "/admin/planes", texto: "Planes", icono: BookMarked, end: false },
 ];
 
