@@ -17,7 +17,7 @@ export interface MateriaAvance {
   estado: EstadoMateria;
   calificacion: number | null;     // la acreditada (null si no hay o si fue "AC")
   intentos: number;                // veces cursada según el kardex
-  requisitosPendientes: string[];  // pre-requisitos aún no acreditados
+  requisitosPendientes: string[];  // pre-requisitos aún no acreditados + co-requisitos bloqueados
   faltaPorcentaje: boolean;        // true si la bloquea el % de créditos
 }
 

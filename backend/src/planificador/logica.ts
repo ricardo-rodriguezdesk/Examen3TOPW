@@ -113,6 +113,22 @@ export function calcularAvance(args: {
     };
   }).sort((a, b) => a.semestreSugerido - b.semestreSugerido || a.clave.localeCompare(b.clave));
 
+  // 4b. Co-requisitos: se cursan en el mismo semestre. Si la pareja no se puede inscribir (está bloqueada),
+  //     esta tampoco. La pareja queda en requisitosPendientes (el front distingue pre/co con `correquisitos`).
+  //     Se repite hasta estabilizar por si hay cadenas de co-requisitos.
+  const porClaveEstado = new Map(materias.map((m) => [m.clave, m]));
+  for (let cambio = true; cambio;) {
+    cambio = false;
+    for (const m of materias) {
+      if (m.estado !== "disponible" && m.estado !== "reprobada") continue;
+      const bloqueantes = m.correquisitos.filter((c) => porClaveEstado.get(c)?.estado === "bloqueada" && !m.requisitosPendientes.includes(c));
+      if (!bloqueantes.length) continue;
+      m.requisitosPendientes = [...m.requisitosPendientes, ...bloqueantes];
+      if (m.estado === "disponible") m.estado = "bloqueada";
+      cambio = true;
+    }
+  }
+
   // 5. Semestres cursados (periodos regulares del kardex + el actual)
   const regulares = new Set(kardex.materias.map((m) => m.periodo).filter((p) => !/\/V$/i.test(p)));
   const periodoActual = calificaciones.periodo?.clave ?? null;
