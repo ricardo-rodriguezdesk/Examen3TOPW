@@ -6,7 +6,7 @@
 > para que lo acuerde con A y actualicen este archivo **antes** de cambiar el código.
 > Ambos integrantes usan **macOS** (MacBook).
 
-Última actualización: 5 nov 2026 — por B · **Repo:** https://github.com/ricardo-rodriguezdesk/Examen3TOPW · **App:** https://examen3-topw.vercel.app · **API:** https://sii-planner-api.onrender.com
+Última actualización: 5 nov 2026 — por B
 
 ---
 
@@ -107,7 +107,7 @@ Base: `https://sii.celaya.tecnm.mx/api`
 | Despliegue Render + Vercel | A | ✅ En producción |
 | Base de datos Neon en producción | A | ✅ Conectada (`/api/salud/bd` → postgresql, 59 materias, 112 grupos) |
 | **README, capturas, propuesta escrita del Planificador** | **B** | ⏳ Pendiente |
-| Retícula oficial de ISC con seriación | A | ✅ Cargada (especialidades IDP y GTE) |
+| Retícula oficial de ISC con seriación | A | ✅ Cargada (especialidades IDP, GTE y ADG — esta última por B) |
 
 > Cuando terminen algo, **actualicen esta tabla** en el mismo commit.
 
@@ -230,12 +230,15 @@ seriación ni qué combinación de grupos le conviene el próximo semestre.
 **retícula** (nuestra BD), usando la **clave de la materia** (ej. `AED-1026`).
 
 - **Retícula: OFICIAL**, transcrita de los PDF del TecNM Celaya: ISIC-2010-224 (260 créditos), con las especialidades
-  **Inteligencia de Datos y Plataformas en la Nube (ISIE-IDP-2025-01)**, con toda su seriación, y **Gestión de
-  Tecnologías Emergentes (ISIE-GTE-2026-01)**, solo módulos. Flecha horizontal = **pre-requisito**; vertical = **co-requisito**
+  **Inteligencia de Datos y Plataformas en la Nube (ISIE-IDP-2025-01)**, con toda su seriación, **Gestión de
+  Tecnologías Emergentes (ISIE-GTE-2026-01)**, solo módulos, y **Administración Gerencial (INTE-ADG-2025-02)**, 7 módulos
+  que piden 60 % de créditos (el PDF dice 25 créditos de módulo, pero sus materias suman 36). Flecha horizontal = **pre-requisito**; vertical = **co-requisito**
   (se cursan juntas). Algunas materias piden **% de créditos** (IA 40 %, Prog. Lógica 50 %, Taller Inv. I 60 %,
   IDD-2503/2504 65 %, Servicio Social 70 %, Residencias 80 %).
 - **Oferta de grupos: SIMULADA** para el periodo 27/1 (2 grupos por materia, A matutino y B vespertino), editable desde el admin.
 - **Especialidad:** se **detecta sola** con las claves del kardex; si no se detecta, se usa IDP. Se puede forzar con `?especialidad=CLAVE`.
+- **Especialidades nuevas en la semilla** se agregan solas al arrancar aunque la BD ya tenga datos (`completarEspecialidades()`), sin tocar lo existente.
+  Ojo: si se borra una especialidad de la semilla desde el admin, vuelve a aparecer en el siguiente arranque.
 - Servicio Social y Actividades Complementarias se consideran **en paralelo** (no suman semestres a la estimación).
 - Validado con un kardex real: 49 materias aprobadas (igual que el SII), 260 créditos en el plan (igual que el PDF).
 

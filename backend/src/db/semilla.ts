@@ -4,6 +4,9 @@
 //   Ingeniería en Sistemas Computacionales ISIC-2010-224 (260 créditos) con las especialidades
 //   - Inteligencia de Datos y Plataformas en la Nube (ISIE-IDP-2025-01)  → con su seriación completa
 //   - Gestión de Tecnologías Emergentes (ISIE-GTE-2026-01)               → módulos (seriación por capturar)
+//   - Administración Gerencial (INTE-ADG-2025-02)                        → módulos; todas piden 60 % de créditos y no tienen
+//     seriación entre sí (PDF Reticula_Rev2025v3_Administracion-Gerencial). Nota: el PDF dice "Módulo de Especialidad 25"
+//     pero sus 7 materias suman 36 créditos; se cargan las 7 tal como aparecen.
 // Las flechas horizontales del PDF son PRE-requisitos; las verticales, CO-requisitos.
 //
 // OFERTA DE GRUPOS: SIMULADA (el SII no publica la oferta). Se genera para el periodo 27/1.
@@ -100,6 +103,19 @@ const ESPECIALIDADES: { clave: string; nombre: string; materias: M[] }[] = [
       { clave: "GTF-2602", nombre: "Aplicaciones de Realidad Virtual y Aumentada", htp: "3-2-5", sem: 8 },
     ],
   },
+  {
+    clave: "INTE-ADG-2025-02",
+    nombre: "Administración Gerencial",
+    materias: [
+      { clave: "ADD-2501", nombre: "Capital Humano y Relaciones Laborales", htp: "2-3-5", sem: 7, pct: 60 },
+      { clave: "ADD-2502", nombre: "Finanzas para Administración Gerencial", htp: "3-3-6", sem: 7, pct: 60 },
+      { clave: "ADD-2503", nombre: "Inteligencia de Negocios para la Toma de Decisiones", htp: "2-3-5", sem: 8, pct: 60 },
+      { clave: "ADD-2504", nombre: "Transformación Digital en las Organizaciones", htp: "2-3-5", sem: 8, pct: 60 },
+      { clave: "ADF-2505", nombre: "Project Management", htp: "3-2-5", sem: 8, pct: 60 },
+      { clave: "ADF-2506", nombre: "Planeación Prospectiva", htp: "3-2-5", sem: 8, pct: 60 },
+      { clave: "ADV-2507", nombre: "Estadía Transcultural", htp: "0-5-5", sem: 8, pct: 60 },
+    ],
+  },
 ];
 
 export const PERIODO_OFERTA = "27/1";
@@ -158,26 +174,75 @@ export async function sembrar(d: Db) {
       }
     }
 
-    // Oferta simulada: 2 grupos por materia con clases (A matutino, B vespertino), horarios variados
-    const conClases = todas.filter(({ m }) => !m.tipo || m.tipo === "basica" || m.tipo === "especialidad");
-    let i = 0;
-    for (const { m, id } of conClases) {
-      const cr = Number(m.htp.split("-")[2]);
-      const opciones = [
-        { grupo: "A", inicio: [7, 9, 11][i % 3] },
-        { grupo: "B", inicio: [13, 15, 17][(i + 1) % 3] },
-      ];
-      for (const [k, o] of opciones.entries()) {
-        const [g] = await tx.query<{ id: number }>(
-          "INSERT INTO grupos (materia_id, periodo, grupo, docente, cupo) VALUES ($1,$2,$3,$4,$5) RETURNING id",
-          [id, PERIODO_OFERTA, o.grupo, DOCENTES[(i + k * 3) % DOCENTES.length], 25 + ((i * 7) % 11)],
+    await ofertar(tx, todas);
+  });
+}
+
+type Tx = Parameters<Parameters<Db["transaccion"]>[0]>[0];
+
+/** Oferta simulada: 2 grupos por materia con clases (A matutino, B vespertino), horarios variados. */
+async function ofertar(tx: Tx, materias: { m: M; id: number }[], desde = 0) {
+  const conClases = materias.filter(({ m }) => !m.tipo || m.tipo === "basica" || m.tipo === "especialidad");
+  let i = desde;
+  for (const { m, id } of conClases) {
+    const cr = Number(m.htp.split("-")[2]);
+    const opciones = [
+      { grupo: "A", inicio: [7, 9, 11][i % 3] },
+      { grupo: "B", inicio: [13, 15, 17][(i + 1) % 3] },
+    ];
+    for (const [k, o] of opciones.entries()) {
+      const [g] = await tx.query<{ id: number }>(
+        "INSERT INTO grupos (materia_id, periodo, grupo, docente, cupo) VALUES ($1,$2,$3,$4,$5) RETURNING id",
+        [id, PERIODO_OFERTA, o.grupo, DOCENTES[(i + k * 3) % DOCENTES.length], 25 + ((i * 7) % 11)],
+      );
+      const salon = SALONES[(i + k) % SALONES.length];
+      for (const [dia, ini, horas] of patron(cr, o.inicio)) {
+        await tx.query("INSERT INTO bloques (grupo_id, dia, inicio, fin, salon) VALUES ($1,$2,$3,$4,$5)", [g.id, dia, hhmm(ini), hhmm(ini + horas), salon]);
+      }
+    }
+    i++;
+  }
+}
+
+/**
+ * Para bases que YA tienen datos (Neon en producción): agrega las especialidades de la semilla que falten,
+ * con sus materias, seriación y oferta simulada. No modifica ni borra nada de lo existente.
+ * Devuelve las claves de las especialidades agregadas.
+ */
+export async function completarEspecialidades(d: Db): Promise<string[]> {
+  return d.transaccion(async (tx) => {
+    const [plan] = await tx.query<{ id: number }>("SELECT id FROM planes WHERE clave = $1", ["ISIC-2010-224"]);
+    if (!plan) return [];
+    const existentes = new Set((await tx.query<{ clave: string }>("SELECT clave FROM especialidades")).map((e) => e.clave));
+    const agregadas: string[] = [];
+
+    for (const e of ESPECIALIDADES.filter((x) => !existentes.has(x.clave))) {
+      const [esp] = await tx.query<{ id: number }>(
+        "INSERT INTO especialidades (plan_id, clave, nombre) VALUES ($1,$2,$3) RETURNING id", [plan.id, e.clave, e.nombre],
+      );
+      const nuevas: { m: M; id: number }[] = [];
+      for (const m of e.materias) {
+        const [ya] = await tx.query<{ id: number }>("SELECT id FROM materias WHERE plan_id = $1 AND clave = $2", [plan.id, m.clave]);
+        if (ya) continue; // capturada a mano desde el admin: se respeta
+        const [ht, hp, cr] = m.htp.split("-").map(Number);
+        const [fila] = await tx.query<{ id: number }>(
+          `INSERT INTO materias (plan_id, especialidad_id, clave, nombre, horas_teoria, horas_practica, creditos, semestre, tipo, porcentaje_requerido)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+          [plan.id, esp.id, m.clave, m.nombre, ht, hp, cr, m.sem, m.tipo ?? "especialidad", m.pct ?? null],
         );
-        const salon = SALONES[(i + k) % SALONES.length];
-        for (const [dia, ini, horas] of patron(cr, o.inicio)) {
-          await tx.query("INSERT INTO bloques (grupo_id, dia, inicio, fin, salon) VALUES ($1,$2,$3,$4,$5)", [g.id, dia, hhmm(ini), hhmm(ini + horas), salon]);
+        nuevas.push({ m, id: fila.id });
+      }
+      for (const { m, id } of nuevas) {
+        for (const [tipo, lista] of [["pre", m.pre], ["co", m.co]] as const) {
+          for (const clave of lista ?? []) {
+            const [req] = await tx.query<{ id: number }>("SELECT id FROM materias WHERE plan_id = $1 AND clave = $2", [plan.id, clave]);
+            if (req) await tx.query("INSERT INTO requisitos (materia_id, requisito_id, tipo) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING", [id, req.id, tipo]);
+          }
         }
       }
-      i++;
+      await ofertar(tx, nuevas, existentes.size * 7);
+      agregadas.push(e.clave);
     }
+    return agregadas;
   });
 }
