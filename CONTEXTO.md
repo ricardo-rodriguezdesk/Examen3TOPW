@@ -6,7 +6,7 @@
 > para que lo acuerde con A y actualicen este archivo **antes** de cambiar el código.
 > Ambos integrantes usan **macOS** (MacBook).
 
-Última actualización: 4 nov 2026 (tarde) — por A · **Repo:** https://github.com/ricardo-rodriguezdesk/Examen3TOPW
+Última actualización: 4 nov 2026 — por B
 
 ---
 
@@ -99,8 +99,8 @@ Base: `https://sii.celaya.tecnm.mx/api`
 | Esqueleto del frontend (Vite, router, Tailwind, cliente API, hooks, layout) | A | ✅ Hecho y probado en navegador |
 | Login, rutas protegidas, layout y navegación (front) | A | ✅ Hecho y probado |
 | Dashboard y horario (front) + componente `HorarioGrid` | A | ✅ Hecho y probado (mock y datos reales) |
-| **Calificaciones (front)** | **B** | ⏳ Pendiente |
-| **Kardex (front)** | **B** | ⏳ Pendiente |
+| **Calificaciones (front)** | **B** | ✅ Hecho (mock) |
+| **Kardex (front)** | **B** | ✅ Hecho (mock) |
 | Planificador — backend (BD, retícula, lógica, generador, admin API) | A | ⏳ Pendiente |
 | **Planificador — frontend (mapa, avance, generador, panel admin)** | **B** | ⏳ Pendiente |
 | Despliegue (Render, Vercel, Neon) | A | ⏳ Pendiente |
